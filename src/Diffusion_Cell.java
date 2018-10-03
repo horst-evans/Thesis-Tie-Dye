@@ -1,10 +1,15 @@
 
 public class Diffusion_Cell {
+	//NOTE: a diffusion cell ~= to one pixel
 	int cloth_ref;
-	int layer_ref;
-	float fiber_gap;
-	float x,y;
-	float porosity; 		// [0-1)
-	float tortuosity;		// [0-1)
-	boolean orientation;	// true: x-parallel, false: y-parallel (this is the fiber's orientation) 
+	int x,y;				// position
+	boolean orientation;	// true: x-parallel (weft), false: y-parallel (warp) 
+
+	public Diffusion_Cell(int ref, int xp, int yp, boolean ori) {
+		cloth_ref = ref;
+		x = xp;
+		y = yp;
+		orientation = ori;
+	}
+
 }

@@ -1,7 +1,13 @@
 import processing.core.PApplet;
 
 public class Run_Simulation extends PApplet{
-
+//NOTE: a diffusion cell ~= to one pixel
+	
+	public static float porosity = 0;
+	public static float tortuosity = 0;
+	public static float fiber_gap = 0;						// gap between fibers
+	public static String pattern = "plain";
+	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
 	}
