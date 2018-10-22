@@ -24,7 +24,6 @@ public class Cloth_Cell {
 		int y_gap = isWeft ? Run_Simulation.fiber_gap : 0;
 		for(int i = x_gap; i < Run_Simulation.weft-x_gap; i++) {
 			for(int j = y_gap; j < Run_Simulation.warp-y_gap; j++) {
-				//TODO take into account variables such as gap(currently fills entire square)
 				Diffusion_Cell nd = new Diffusion_Cell(id, x+i, y+j, isWeft);
 				d_cells.add(nd);
 			}

@@ -4,9 +4,8 @@ public class Cloth_Model {
 	Layer warp;				// collection of fibers
 	
 	public Cloth_Model() {
-		//TODO fill layers
-		weft = new Layer();
-		warp = new Layer();
+		weft = new Layer(Run_Simulation.h);
+		warp = new Layer(Run_Simulation.w);
 	}
 	
 }
