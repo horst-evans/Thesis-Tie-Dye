@@ -3,7 +3,7 @@ import processing.core.PApplet;
 public class Run_Simulation extends PApplet{
 //NOTE: a diffusion cell ~= to one pixel
 //TODO fix isWeft, vpos, and up_orientation (all closely (?) related)
-	
+//TODO fix cloth_model index	
 	public static float t1 = 1f;
 	public static float t2 = .47f;
 	public static float I = 1;
@@ -17,6 +17,9 @@ public class Run_Simulation extends PApplet{
 	public static int fiber_size = 1;
 	public static float vmax = 1;				// total volume of a diffusion cell
 	public static float diff_density = 1;		// phi (φ)
+	public static float delta_t = 0.0005f;		// hours
+	public static float delta_d = 0.05f;		// mm
+	public static float dye_concentration = 1f; // "defined arbitrarily"
 	//public static String pattern = "plain";	// crisscross
 	//plain is currently the default, will add more later
 	public static int weft = 0;
@@ -42,33 +45,61 @@ public class Run_Simulation extends PApplet{
     	
     }
     
-    public void ficks2nd() {
-    	//diffusion density (φ - phi)
-    	//time
-    	//diffusion coefficient
-    	//x-axis displacement
-    	//y-axis displacement
-    	//z-axis displacement   	
-    }
-    
     // (1) - (2)
-    
-    // (3)
-    public float t3() {
-    	return 1f;
+    //cell_layer starts as weft (e = weft, a = warp)
+    public float ficks2nd(int dx, int dy, int cell_layer) {
+    	int i = dx;
+    	int j = dy;
+    	Diffusion_Cell current_cell = cm.index(i, j, cell_layer);
+    	//terms
+    	//NOTE: D() has been changed to '1's instead of '1/2's, as per the affected cells in m
+    	float d1 = D(current_cell, (cm.index(i+1,j,cell_layer)));
+    	float m1 = (cm.index(i+1, j, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	
+    	float d2 = D(current_cell, (cm.index(i-1,j,cell_layer)));
+    	float m2 = (cm.index(i-1, j, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	
+    	float d3 = D(current_cell, (cm.index(i,j+1,cell_layer)));
+    	float m3 = (cm.index(i, j+1, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	
+    	float d4 = D(current_cell, (cm.index(i,j-1,cell_layer)));
+    	float m4 = (cm.index(i, j-1, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	
+    	float d5 = D(current_cell, (cm.index(i,j,(cell_layer+1)%2)));
+    	float m5 = (cm.index(i, j, (cell_layer+1)%2).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	//equation
+    	float eq = (d1*m1 + d2*m2 + d3*m3 + d4*m4 + d5*m5) / delta_d;
+    	return eq;
     }
     
-    public float tortuosity() {	//calculate all 
-    	return t1 * t2 * t3();
+    // (3) //TODO figure this out
+    public float t3(Diffusion_Cell f1, Diffusion_Cell f2) {
+    	//gap and gap
+    	if(cm.isGap(f1) && cm.isGap(f2)) return II;
+    	//fiber and gap
+    	else if(cm.isGap(f1) || cm.isGap(f2)) return III;
+    	//different layers
+    	else if(cm.weft.hasFiber(f1) == cm.warp.hasFiber(f2)) return I;
+    	//same layer and parallel (weft layer and warp layer)
+    	else if(cm.weft.hasFiber(f1) == cm.weft.hasFiber(f2) && cm.weft.hasFiber(f1) > 0) return V;
+    	else if(cm.warp.hasFiber(f1) == cm.warp.hasFiber(f2) && cm.warp.hasFiber(f1) > 0) return V;
+    	//same layer and perpendicular
+    	else return IV;
+    }
+    
+    public float tortuosity(Diffusion_Cell f1, Diffusion_Cell f2) {	//calculate all 
+    	return t1 * t2 * t3(f1, f2);
     }
     
     // (4)
-    public float D(float dye_concentration) {
+    public float D(Diffusion_Cell f1, Diffusion_Cell f2) {
     	//diffusion coefficient
-    	return porosity * tortuosity() * (dye_concentration / diff_density);
+    	//TODO check for correct implementation
+    	return D0() * porosity * tortuosity(f1,f2);// * (dye_concentration / diff_density);
     }
     
     // (5)
+    public float D0() { return 1.93f; } //see paper defaults
     public float D0(float mol_mass) {
     	//diffusion coefficient in free water
     	//mol_mass is molecular mass of the dye
@@ -93,6 +124,7 @@ public class Run_Simulation extends PApplet{
     
     public float Ad(float Kl) {	//Langmuir equation when b==1
     	//b == 1
+    	//Kl = equilibrium constant
     	float numerator = Vd() * Kl * diff_density;
     	float denominator = 1 + (Kl * diff_density);
     	return numerator / denominator;
