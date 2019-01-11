@@ -4,6 +4,7 @@ public class Run_Simulation extends PApplet{
 //NOTE: a diffusion cell ~= to one pixel
 //TODO fix isWeft, vpos, and up_orientation (all closely (?) related)
 //TODO fix cloth_model index	
+//TODO have gaps exist (carry from Layer)	
 	public static float t1 = 1f;
 	public static float t2 = .47f;
 	public static float I = 1;
@@ -15,6 +16,7 @@ public class Run_Simulation extends PApplet{
 	public static float porosity = 0.5f;
 	public static int fiber_gap = 1;			// gap between fibers
 	public static int fiber_size = 1;
+	public static int cell_size = (Run_Simulation.fiber_size + Run_Simulation.fiber_gap);
 	public static float vmax = 1;				// total volume of a diffusion cell
 	public static float diff_density = 1;		// phi (φ)
 	public static float delta_t = 0.0005f;		// hours
@@ -22,10 +24,11 @@ public class Run_Simulation extends PApplet{
 	public static float dye_concentration = 1f; // "defined arbitrarily"
 	//public static String pattern = "plain";	// crisscross
 	//plain is currently the default, will add more later
-	public static int weft = 0;
-	public static int warp = 0;
-	public static int w = 400;
-	public static int h = 300;
+	// thread sizes must be > 0
+	public static int thread_weft_size = 4;
+	public static int thread_warp_size = 4;
+	public static int w = 400; //weft ==
+	public static int h = 300; //warp ||
 	public Cloth_Model cm;
 	
 	public static void main(String[] args) {
@@ -39,6 +42,7 @@ public class Run_Simulation extends PApplet{
     public void setup(){
     	fill(120,50,240);
     	cm = new Cloth_Model();
+    	ficks2nd(0,0,0);
     }
 
     public void draw(){
@@ -69,6 +73,7 @@ public class Run_Simulation extends PApplet{
     	float m5 = (cm.index(i, j, (cell_layer+1)%2).diffusion_density - current_cell.diffusion_density)/delta_d;
     	//equation
     	float eq = (d1*m1 + d2*m2 + d3*m3 + d4*m4 + d5*m5) / delta_d;
+    	System.out.println("val"+eq);
     	return eq;
     }
     

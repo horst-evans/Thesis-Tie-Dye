@@ -13,13 +13,16 @@ public class Cloth_Model {
 	}
 	
 	public Diffusion_Cell index(int x, int y, int layer) {
-		int cell_size = (Run_Simulation.fiber_size + Run_Simulation.fiber_gap);
-		int cloth_x = x / cell_size;
-		int cloth_y = y / cell_size;
-		int diff_x = x % cell_size;
-		int diff_y = y % cell_size;
+		//TODO need to take into account gaps!!
+		int cloth_x = x / Run_Simulation.cell_size;
+		int cloth_y = y / Run_Simulation.cell_size;
+		int diff_x = x % Run_Simulation.cell_size;
+		int diff_y = y % Run_Simulation.cell_size;
 		if(layer==0) {
+			//TODO d_cells have a gap in them, but arraylist doesnt know this?
 			Cloth_Cell cloth_cell = weft.fibers.get(cloth_x).get(cloth_y);
+			//System.out.println(cloth_cell.x + " " + cloth_cell.y);
+			System.out.println(cloth_cell.d_cells.size());
 			return cloth_cell.d_cells.get(diff_x).get(diff_y);
 		}
 		else {

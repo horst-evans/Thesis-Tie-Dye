@@ -23,9 +23,10 @@ public class Cloth_Cell {
 		int layer = isWeft ? 0 : 1;
 		int x_gap = !isWeft ? Run_Simulation.fiber_gap : 0;
 		int y_gap = isWeft ? Run_Simulation.fiber_gap : 0;
-		for(int i = x_gap; i < Run_Simulation.weft-x_gap; i++) {
+		//start at the gap _|||_, continue until the max - the gap
+		for(int i = x_gap; i < Run_Simulation.thread_weft_size-x_gap; i++) {
 			ArrayList<Diffusion_Cell> row = new ArrayList<Diffusion_Cell> ();
-			for(int j = y_gap; j < Run_Simulation.warp-y_gap; j++) {
+			for(int j = y_gap; j < Run_Simulation.thread_warp_size-y_gap; j++) {
 				Diffusion_Cell nd = new Diffusion_Cell(id, x+i, y+j, layer, isWeft);
 				row.add(nd);
 			}

@@ -4,16 +4,16 @@ public class Layer {
 	ArrayList<ArrayList<Cloth_Cell>> fibers;
 	
 	public Layer(int n, boolean first_down, boolean isweft) {
-		int cell_size = (Run_Simulation.fiber_size + Run_Simulation.fiber_gap);
-		int num = n/cell_size;
+		fibers = new ArrayList<ArrayList<Cloth_Cell>>();
+		int num = n/Run_Simulation.cell_size;
 		int id=0;
-		ArrayList<Cloth_Cell> fiber = new ArrayList<Cloth_Cell>();
 		boolean up = first_down;
 		boolean fup = up;
 		for(int i = 0; i < num; i++) {
+			ArrayList<Cloth_Cell> fiber = new ArrayList<Cloth_Cell>();
 			for(int j = 0; j < num; j++) {
-				int xp = i * cell_size;
-				int yp = i * cell_size;
+				int xp = i * Run_Simulation.cell_size;
+				int yp = i * Run_Simulation.cell_size;
 				Cloth_Cell nc = new Cloth_Cell(id,isweft,0,xp,yp,up);
 				up = !up;
 				fiber.add(nc);
