@@ -18,11 +18,19 @@ public class Cloth_Model {
 		int cloth_y = y / Run_Simulation.cell_size;
 		int diff_x = x % Run_Simulation.cell_size;
 		int diff_y = y % Run_Simulation.cell_size;
+		//boundary cases
+		diff_x = diff_x<0 ? 0 : diff_x;
+		diff_x = diff_x>Run_Simulation.thread_weft_size ? Run_Simulation.thread_weft_size : diff_x;
+
+		diff_y = diff_y<0 ? 0 : diff_y;
+		diff_y = diff_y>Run_Simulation.thread_warp_size ? Run_Simulation.thread_warp_size : diff_y;
+		
 		if(layer==0) {
-			//TODO d_cells have a gap in them, but arraylist doesnt know this?
+			//TODO d_cells have a gap in them, but ArrayList doesn't know this
+			//System.out.println("c: "+cloth_x + " " + cloth_y);
+			//System.out.println("d: "+diff_x + " " + diff_y);
+			//System.out.println(cloth_cell.d_cells.size() * cloth_cell.d_cells.get(0).size());
 			Cloth_Cell cloth_cell = weft.fibers.get(cloth_x).get(cloth_y);
-			//System.out.println(cloth_cell.x + " " + cloth_cell.y);
-			System.out.println(cloth_cell.d_cells.size());
 			return cloth_cell.d_cells.get(diff_x).get(diff_y);
 		}
 		else {

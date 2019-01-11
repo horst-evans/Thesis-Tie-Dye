@@ -1,10 +1,10 @@
 import processing.core.PApplet;
+import processing.core.PImage;
 
 public class Run_Simulation extends PApplet{
 //NOTE: a diffusion cell ~= to one pixel
 //TODO fix isWeft, vpos, and up_orientation (all closely (?) related)
 //TODO fix cloth_model index	
-//TODO have gaps exist (carry from Layer)	
 	public static float t1 = 1f;
 	public static float t2 = .47f;
 	public static float I = 1;
@@ -22,14 +22,17 @@ public class Run_Simulation extends PApplet{
 	public static float delta_t = 0.0005f;		// hours
 	public static float delta_d = 0.05f;		// mm
 	public static float dye_concentration = 1f; // "defined arbitrarily"
+	
 	//public static String pattern = "plain";	// crisscross
 	//plain is currently the default, will add more later
-	// thread sizes must be > 0
-	public static int thread_weft_size = 4;
-	public static int thread_warp_size = 4;
+	// thread sizes = total size of thread(including gaps)
+	public static int thread_weft_size = 6;
+	public static int thread_warp_size = 6;
 	public static int w = 400; //weft ==
 	public static int h = 300; //warp ||
+	
 	public Cloth_Model cm;
+	PImage cloth_render;
 	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
@@ -38,19 +41,30 @@ public class Run_Simulation extends PApplet{
 	public void settings(){
 		size(w,h);
     }
-
+	//TODO finish PImage skeleton
     public void setup(){
     	fill(120,50,240);
     	cm = new Cloth_Model();
+    	cloth_render = createImage(w,h,RGB);
+    	cloth_render.loadPixels();
+    	for(int x=0; x<width; x++) {
+    		for(int y=0; y<height; y++) {
+    			//use the diffusion cell that is up between the two
+    			Diffusion_Cell dc1 = cm.index(x, y, 0);
+    			Diffusion_Cell dc2 = cm.index(x, y, 1);
+    			cloth_render.pixels[0] = color(255*ratio,255,255);
+    		}
+    	}
     	ficks2nd(0,0,0);
     }
 
     public void draw(){
-    	
+    	//TODO PImage save() function
     }
     
     // (1) - (2)
     //cell_layer starts as weft (e = weft, a = warp)
+    //TODO how does this handle overlaping cells?
     public float ficks2nd(int dx, int dy, int cell_layer) {
     	int i = dx;
     	int j = dy;
@@ -73,7 +87,7 @@ public class Run_Simulation extends PApplet{
     	float m5 = (cm.index(i, j, (cell_layer+1)%2).diffusion_density - current_cell.diffusion_density)/delta_d;
     	//equation
     	float eq = (d1*m1 + d2*m2 + d3*m3 + d4*m4 + d5*m5) / delta_d;
-    	System.out.println("val"+eq);
+    	System.out.println("val: "+eq);
     	return eq;
     }
     
