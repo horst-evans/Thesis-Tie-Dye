@@ -20,9 +20,10 @@ public class Cloth_Cell {
 	}
 	
 	public void Create_Diffusions() {
+		//TODO make gaps real
 		int layer = isWeft ? 0 : 1;
-		int x_gap = !isWeft ? Run_Simulation.fiber_gap : 0;
-		int y_gap = isWeft ? Run_Simulation.fiber_gap : 0;
+		int x_gap = 0;//!isWeft ? Run_Simulation.gap_size : 0;
+		int y_gap = 0;//isWeft ? Run_Simulation.gap_size : 0;
 		//start at the gap _|||_, continue until the max - the gap
 		for(int i = x_gap; i < Run_Simulation.thread_weft_size-x_gap; i++) {
 			ArrayList<Diffusion_Cell> row = new ArrayList<Diffusion_Cell> ();

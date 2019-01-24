@@ -4,7 +4,8 @@ import processing.core.PImage;
 public class Run_Simulation extends PApplet{
 //NOTE: a diffusion cell ~= to one pixel
 //TODO fix isWeft, vpos, and up_orientation (all closely (?) related)
-//TODO fix cloth_model index	
+//TODO fix cloth_model index
+//TODO doesn't work if w =/= h
 	public static float t1 = 1f;
 	public static float t2 = .47f;
 	public static float I = 1;
@@ -14,9 +15,6 @@ public class Run_Simulation extends PApplet{
 	public static float V = 1;
 	
 	public static float porosity = 0.5f;
-	public static int fiber_gap = 1;			// gap between fibers
-	public static int fiber_size = 1;
-	public static int cell_size = (Run_Simulation.fiber_size + Run_Simulation.fiber_gap);
 	public static float vmax = 1;				// total volume of a diffusion cell
 	public static float diff_density = 1;		// phi (φ)
 	public static float delta_t = 0.0005f;		// hours
@@ -28,11 +26,15 @@ public class Run_Simulation extends PApplet{
 	// thread sizes = total size of thread(including gaps)
 	public static int thread_weft_size = 6;
 	public static int thread_warp_size = 6;
-	public static int w = 400; //weft ==
+	public static int gap_size = 1;
+	public static int w = 300; //weft ==
 	public static int h = 300; //warp ||
 	
+	//variables for main loops
 	public Cloth_Model cm;
 	PImage cloth_render;
+	int iterations;
+	int max_iter = 10;
 	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
@@ -41,25 +43,60 @@ public class Run_Simulation extends PApplet{
 	public void settings(){
 		size(w,h);
     }
-	//TODO finish PImage skeleton
+	
     public void setup(){
-    	fill(120,50,240);
+    	//fill(120,50,240);
     	cm = new Cloth_Model();
     	cloth_render = createImage(w,h,RGB);
-    	cloth_render.loadPixels();
-    	for(int x=0; x<width; x++) {
-    		for(int y=0; y<height; y++) {
-    			//use the diffusion cell that is up between the two
-    			Diffusion_Cell dc1 = cm.index(x, y, 0);
-    			Diffusion_Cell dc2 = cm.index(x, y, 1);
-    			cloth_render.pixels[0] = color(255*ratio,255,255);
-    		}
-    	}
-    	ficks2nd(0,0,0);
+    	iterations  = 0;
+    	dye(0,0,20);
     }
 
     public void draw(){
-    	//TODO PImage save() function
+    	if(iterations < max_iter) {
+    		System.out.println(iterations+1);
+    		//apply dye
+    		//dye(0,0);
+	    	//run fick's
+    		for(int x=0; x<w; x++) {
+	    		for(int y=0; y<h; y++) {
+	    			//use the diffusion cell that is up between the two?
+	    			ficks2nd(x,y,0);
+	    			ficks2nd(x,y,1);
+	    		}
+	    	}
+	    	//increment clock
+	    	iterations++;
+    	}
+    	//finished looping, so save file and end draw() loop
+    	else {
+    		//transcribe colors
+	    	cloth_render.loadPixels();
+	    	for(int x=0; x<w; x++) {
+	    		for(int y=0; y<h; y++) {
+	    			//use the diffusion cell that is up between the two?
+	    			Diffusion_Cell dc1 = cm.index(x, y, 0);
+	    			Diffusion_Cell dc2 = cm.index(x, y, 1);
+	    			//is an average for now
+	    			float ratio = (dc1.diffusion_density + dc2.diffusion_density) / 2;
+	    			int index = w*x + y;
+	    			cloth_render.pixels[index] = color(255*(1-ratio),255,255);
+	    		}
+	    	}
+	    	cloth_render.save("cloth_render.jpg");
+	    	cloth_render.updatePixels();
+	    	//exit draw() loop
+    		exit();
+    	}
+    }
+    
+    public void dye(int x, int y, int size) {
+    	for(int i=0; i < size; i++) {
+    		for(int j=0; j < size; j++) {
+    			cm.index(x+i, y+j, 0).diffusion_density = 1;
+    	    	cm.index(x+i, y+j, 1).diffusion_density = 1;
+    		}
+    	}
     }
     
     // (1) - (2)
@@ -87,7 +124,6 @@ public class Run_Simulation extends PApplet{
     	float m5 = (cm.index(i, j, (cell_layer+1)%2).diffusion_density - current_cell.diffusion_density)/delta_d;
     	//equation
     	float eq = (d1*m1 + d2*m2 + d3*m3 + d4*m4 + d5*m5) / delta_d;
-    	System.out.println("val: "+eq);
     	return eq;
     }
     

@@ -5,15 +5,15 @@ public class Layer {
 	
 	public Layer(int n, boolean first_down, boolean isweft) {
 		fibers = new ArrayList<ArrayList<Cloth_Cell>>();
-		int num = n/Run_Simulation.cell_size;
+		int num = n/Run_Simulation.thread_weft_size;
 		int id=0;
 		boolean up = first_down;
 		boolean fup = up;
 		for(int i = 0; i < num; i++) {
 			ArrayList<Cloth_Cell> fiber = new ArrayList<Cloth_Cell>();
 			for(int j = 0; j < num; j++) {
-				int xp = i * Run_Simulation.cell_size;
-				int yp = i * Run_Simulation.cell_size;
+				int xp = i * Run_Simulation.thread_weft_size;
+				int yp = j * Run_Simulation.thread_warp_size;
 				Cloth_Cell nc = new Cloth_Cell(id,isweft,0,xp,yp,up);
 				up = !up;
 				fiber.add(nc);
