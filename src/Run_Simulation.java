@@ -1,10 +1,11 @@
+import java.util.ArrayList;
+
 import processing.core.PApplet;
 import processing.core.PImage;
 
 public class Run_Simulation extends PApplet{
 //NOTE: a diffusion cell ~= to one pixel
 //TODO fix isWeft, vpos, and up_orientation (all closely (?) related)
-//TODO fix cloth_model index
 //TODO doesn't work if w =/= h
 	public static float t1 = 1f;
 	public static float t2 = .47f;
@@ -18,7 +19,7 @@ public class Run_Simulation extends PApplet{
 	public static float vmax = 1;				// total volume of a diffusion cell
 	public static float diff_density = 1;		// phi (φ)
 	public static float delta_t = 0.0005f;		// hours
-	public static float delta_d = 0.05f;		// mm
+	public static float delta_d = 1;//0.05f;		// mm
 	public static float dye_concentration = 1f; // "defined arbitrarily"
 	
 	//public static String pattern = "plain";	// crisscross
@@ -27,36 +28,64 @@ public class Run_Simulation extends PApplet{
 	public static int thread_weft_size = 6;
 	public static int thread_warp_size = 6;
 	public static int gap_size = 1;
-	public static int w = 300; //weft ==
-	public static int h = 300; //warp ||
+	public static int w = 100; //weft ==
+	public static int h = 100; //warp ||
 	
 	//variables for main loops
 	public Cloth_Model cm;
+	double[][] rates_top;
+	double[][] rates_bot;
 	PImage cloth_render;
 	int iterations;
-	int max_iter = 10;
+	int max_iter = 100;
+	int dye_iter;
+	int max_dye = 0;
+	int iteration_mod = 10;
 	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
 	}
 	
+	//neccessary for eclipse rendering
 	public void settings(){
 		size(w,h);
-    }
+	}
 	
     public void setup(){
-    	//fill(120,50,240);
     	cm = new Cloth_Model();
+    	rates_top = new double[width][height];
+    	rates_bot = new double[width][height];
     	cloth_render = createImage(w,h,RGB);
     	iterations  = 0;
-    	dye(0,0,20);
+    	dye_iter = 0;
+    	dye(w/2-10,h/2-10,20);
     }
 
     public void draw(){
+    	//print to screen every modulo
+    	if (iterations % iteration_mod == 0){
+    		System.out.println(iterations);
+    		//transcribe colors
+	    	cloth_render.loadPixels();
+	    	for(int x=0; x<w; x++) {
+	    		for(int y=0; y<h; y++) {
+	    			//TODO use the one that is up! (might fix weird checker-board?)
+	    			//use the diffusion cell that is up between the two?
+	    			Diffusion_Cell dc1 = cm.index(x, y, 0);
+	    			Diffusion_Cell dc2 = cm.index(x, y, 1);
+	    			float ratio = (dc1.diffusion_density + dc2.diffusion_density) / 2;
+	    			int index = w*x + y;
+	    			cloth_render.pixels[index] = color(255*(1-ratio),255*(1-ratio),255);
+	    		}
+	    	}
+	    	//TODO save in 0000X format for GIF
+	    	cloth_render.save("cloth_render.jpg");
+	    	cloth_render.updatePixels();
+	    	//put on console
+    		image(cloth_render,0,0);
+    	}
+    	//diffusion statement
     	if(iterations < max_iter) {
-    		System.out.println(iterations+1);
-    		//apply dye
-    		//dye(0,0);
 	    	//run fick's
     		for(int x=0; x<w; x++) {
 	    		for(int y=0; y<h; y++) {
@@ -65,8 +94,22 @@ public class Run_Simulation extends PApplet{
 	    			ficks2nd(x,y,1);
 	    		}
 	    	}
+    		for(int x=0; x<w; x++) {
+	    		for(int y=0; y<h; y++) {
+	    			//use the diffusion cell that is up between the two?
+	    			Diffusion_Cell top = cm.index(x, y, 0);
+	    			Diffusion_Cell bot = cm.index(x, y, 1);
+	    			top.diffusion_density = top.diffusion_density + (float) rates_top[x][y];
+	    			bot.diffusion_density = bot.diffusion_density + (float) rates_bot[x][y];
+	    		}
+	    	}
 	    	//increment clock
 	    	iterations++;
+	    	//re-apply dye to source
+	    	if(dye_iter < max_dye) {
+	    		dye(w/2-10,h/2-10,20);
+	    		dye_iter++;
+	    	}
     	}
     	//finished looping, so save file and end draw() loop
     	else {
@@ -80,7 +123,7 @@ public class Run_Simulation extends PApplet{
 	    			//is an average for now
 	    			float ratio = (dc1.diffusion_density + dc2.diffusion_density) / 2;
 	    			int index = w*x + y;
-	    			cloth_render.pixels[index] = color(255*(1-ratio),255,255);
+	    			cloth_render.pixels[index] = color(255*(1-ratio),255*(1-ratio),255);
 	    		}
 	    	}
 	    	cloth_render.save("cloth_render.jpg");
@@ -100,30 +143,38 @@ public class Run_Simulation extends PApplet{
     }
     
     // (1) - (2)
-    //cell_layer starts as weft (e = weft, a = warp)
-    //TODO how does this handle overlaping cells?
-    public float ficks2nd(int dx, int dy, int cell_layer) {
+    //calculates the rate of dye transfer for the target cell from the surrounding cells
+    //positive means dye flowing in, negative means dye leaving
+    public double ficks2nd(int dx, int dy, int cell_layer) {
     	int i = dx;
     	int j = dy;
     	Diffusion_Cell current_cell = cm.index(i, j, cell_layer);
     	//terms
-    	//NOTE: D() has been changed to '1's instead of '1/2's, as per the affected cells in m
-    	float d1 = D(current_cell, (cm.index(i+1,j,cell_layer)));
-    	float m1 = (cm.index(i+1, j, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	//NOTE: D()'s '1/2' has been changed to '1' to fit with index logic
+    	double d1 = D(current_cell, (cm.index(i+1,j,cell_layer)));
+    	double m1 = (cm.index(i+1, j, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
     	
-    	float d2 = D(current_cell, (cm.index(i-1,j,cell_layer)));
-    	float m2 = (cm.index(i-1, j, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double d2 = D(current_cell, (cm.index(i-1,j,cell_layer)));
+    	double m2 = (cm.index(i-1, j, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;    	//cm_copy.index(i-1, j, cell_layer).diffusion_density = cm_copy.index(i-1, j, cell_layer).diffusion_density * (float) (d2*m2)/delta_d;
     	
-    	float d3 = D(current_cell, (cm.index(i,j+1,cell_layer)));
-    	float m3 = (cm.index(i, j+1, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double d3 = D(current_cell, (cm.index(i,j+1,cell_layer)));
+    	double m3 = (cm.index(i, j+1, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;    	//cm_copy.index(i, j+1, cell_layer).diffusion_density = cm_copy.index(i, j+1, cell_layer).diffusion_density * (float) (d3*m3)/delta_d;
     	
-    	float d4 = D(current_cell, (cm.index(i,j-1,cell_layer)));
-    	float m4 = (cm.index(i, j-1, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double d4 = D(current_cell, (cm.index(i,j-1,cell_layer)));
+    	double m4 = (cm.index(i, j-1, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;    	//cm_copy.index(i, j-1, cell_layer).diffusion_density = cm_copy.index(i, j-1, cell_layer).diffusion_density * (float) (d4*m4)/delta_d;
     	
-    	float d5 = D(current_cell, (cm.index(i,j,(cell_layer+1)%2)));
-    	float m5 = (cm.index(i, j, (cell_layer+1)%2).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double d5 = D(current_cell, (cm.index(i,j,(cell_layer+1)%2)));
+    	double m5 = (cm.index(i, j, (cell_layer+1)%2).diffusion_density - current_cell.diffusion_density)/delta_d;    	//cm_copy.index(i, j, (cell_layer+1)%2).diffusion_density = cm_copy.index(i, j, (cell_layer+1)%2).diffusion_density * (float) (d5*m5)/delta_d;
+    	
     	//equation
-    	float eq = (d1*m1 + d2*m2 + d3*m3 + d4*m4 + d5*m5) / delta_d;
+    	double eq = (d1*m1 + d2*m2 + d3*m3 + d4*m4 + d5*m5) / delta_d;
+    	//bounds checking
+    	if(eq > 1) eq = 1;
+    	else if(eq < -1) eq  = -1;
+    	//if(eq != 0) System.out.println("eq: "+eq);
+    	//update corresponding rates
+    	if(cell_layer == 0) rates_top[i][j] = eq;
+    	else rates_bot[i][j] = eq;
     	return eq;
     }
     

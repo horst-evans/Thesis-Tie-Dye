@@ -32,7 +32,7 @@ public class Cloth_Model {
 		diff_y = diff_y>Run_Simulation.thread_warp_size ? Run_Simulation.thread_warp_size : diff_y;
 		
 		if(layer==0) {
-			//TODO d_cells have a gap in them, but ArrayList doesn't know this
+			//TODO d_cells can have a gap in them, but ArrayList doesn't know this
 			Cloth_Cell cloth_cell = weft.fibers.get(cloth_x).get(cloth_y);
 			return cloth_cell.d_cells.get(diff_x).get(diff_y);
 		}
