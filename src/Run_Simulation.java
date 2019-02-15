@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 import processing.core.PApplet;
 import processing.core.PImage;
 
@@ -21,7 +19,7 @@ public class Run_Simulation extends PApplet{
 	public static float vmax = 1;				// total volume of a diffusion cell
 	public static float diff_density = 1;		// phi (φ)
 	public static float delta_t = 0.0005f;		// hours
-	public static float delta_d = 1;//0.05f;		// mm
+	public static float delta_d = 2f;//0.05f;		// mm
 	public static float dye_concentration = 1f; // "defined arbitrarily"
 	
 	//public static String pattern = "plain";	// crisscross
@@ -43,7 +41,7 @@ public class Run_Simulation extends PApplet{
 	int dye_iter;
 	int max_dye = 0;
 	int iteration_mod = 10;
-	String shape = "Circle";
+	String shape = "Triangle";
 	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
