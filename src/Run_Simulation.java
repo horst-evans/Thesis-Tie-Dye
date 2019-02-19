@@ -19,7 +19,7 @@ public class Run_Simulation extends PApplet{
 	public static float vmax = 1;				// total volume of a diffusion cell
 	public static float diff_density = 1;		// phi (φ)
 	public static float delta_t = 0.0005f;		// hours
-	public static float delta_d = 2f;//0.05f;		// mm
+	public static float delta_d = 1.75f;//0.05f;		// mm
 	public static float dye_concentration = 1f; // "defined arbitrarily"
 	
 	//public static String pattern = "plain";	// crisscross
@@ -41,7 +41,7 @@ public class Run_Simulation extends PApplet{
 	int dye_iter;
 	int max_dye = 0;
 	int iteration_mod = 10;
-	String shape = "Triangle";
+	String shape = "Square";
 	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
@@ -59,7 +59,7 @@ public class Run_Simulation extends PApplet{
     	cloth_render = createImage(w,h,RGB);
     	iterations  = 0;
     	dye_iter = 0;
-    	dye(w/2-10,h/2-10,20);
+    	dye(w/2,h/2,20);
     }
 
     public void draw(){
@@ -95,7 +95,7 @@ public class Run_Simulation extends PApplet{
 	    	iterations++;
 	    	//re-apply dye to source
 	    	if(dye_iter < max_dye) {
-	    		dye(w/2-10,h/2-10,20);
+	    		dye(w/2,h/2,20);
 	    		dye_iter++;
 	    	}
     	}
@@ -125,9 +125,12 @@ public class Run_Simulation extends PApplet{
     	cloth_render.updatePixels();
     }
     
-    public void dye(int x, int y, int size) {
+    //draws shape with top corner as x / y
+    public void dye(int input_x, int input_y, int size) {
     	//Triangle
     	if(shape == "Triangle") {
+    		int x = input_x - size/2;
+    		int y = input_y - size/2;
 	    	for(int i=0; i < size; i++) {
 	    		for(int j=i; j < size; j++) {
 	    			cm.index(x+i, y+j, 0).diffusion_density = 1;
@@ -137,6 +140,8 @@ public class Run_Simulation extends PApplet{
     	}
     	//Square
     	else if(shape == "Square") {
+    		int x = input_x - size/2;
+    		int y = input_y - size/2;
 	    	for(int i=0; i < size; i++) {
 	    		for(int j=0; j < size; j++) {
 	    			cm.index(x+i, y+j, 0).diffusion_density = 1;
@@ -146,7 +151,20 @@ public class Run_Simulation extends PApplet{
     	}
     	//Circle
     	else if(shape == "Circle") {
-    		//ellipse(56, 46, 55, 55);
+    		int x = input_x;
+    		int y = input_y;
+    		int radius = size/2;
+    		final double PI = 3.1415926535;
+    		double i, angle, x1, y1;
+    		for(i = 0; i < 360; i += 0.1) {
+	    	    angle = i;
+	    	    for(int j=0; j<=radius; j++) {
+		    	    x1 = j * Math.cos(angle * PI / 180);
+		    	    y1 = j * Math.sin(angle * PI / 180);
+		    	    cm.index((int)(x+x1), (int)(y+y1), 0).diffusion_density = 1;
+	    	    	cm.index((int)(x+x1), (int)(y+y1), 1).diffusion_density = 1;
+	    	    }
+    	    }
     	}
     	//Not Specified
     	else {
