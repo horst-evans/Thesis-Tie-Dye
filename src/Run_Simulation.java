@@ -19,7 +19,7 @@ public class Run_Simulation extends PApplet{
 	public static float vmax = 1;				// total volume of a diffusion cell
 	public static float diff_density = 1;		// phi (φ)
 	public static float delta_t = 0.0005f;		// hours
-	public static float delta_d = 1.75f;//0.05f;		// mm
+	public static float delta_d = 1.35f;//1.75f;//0.05f;		// mm
 	public static float dye_concentration = 1f; // "defined arbitrarily"
 	
 	//public static String pattern = "plain";	// crisscross
@@ -33,8 +33,9 @@ public class Run_Simulation extends PApplet{
 	
 	//variables for main loops
 	public Cloth_Model cm;
-	double[][] rates_top;
-	double[][] rates_bot;
+	double[][][] rates_top;
+	double[][][] rates_bot;
+	
 	PImage cloth_render;
 	int iterations;
 	int max_iter = 100;
@@ -47,19 +48,21 @@ public class Run_Simulation extends PApplet{
 		PApplet.main("Run_Simulation");
 	}
 	
-	//neccessary for eclipse rendering
+	//necessary for eclipse rendering
 	public void settings(){
 		size(w,h);
 	}
 	
     public void setup(){
     	cm = new Cloth_Model();
-    	rates_top = new double[width][height];
-    	rates_bot = new double[width][height];
+    	rates_top = new double[width][height][3];
+    	rates_bot = new double[width][height][3];
     	cloth_render = createImage(w,h,RGB);
     	iterations  = 0;
     	dye_iter = 0;
-    	dye(w/2,h/2,20);
+    	dye(3*w/8,3*h/8,30,0);
+    	dye(3*w/8,3*h/8+15,30,2);
+    	//dye(5*w/8,5*h/8,20,1);
     }
 
     public void draw(){
@@ -87,15 +90,23 @@ public class Run_Simulation extends PApplet{
 	    			//use the diffusion cell that is up between the two?
 	    			Diffusion_Cell top = cm.index(x, y, 0);
 	    			Diffusion_Cell bot = cm.index(x, y, 1);
-	    			top.diffusion_density = top.diffusion_density + (float) rates_top[x][y];
-	    			bot.diffusion_density = bot.diffusion_density + (float) rates_bot[x][y];
+	    			//red
+	    			top.red = top.red + (float) rates_top[x][y][0];
+	    			bot.red = bot.red + (float) rates_bot[x][y][0];
+	    			//green
+	    			top.green = top.green + (float) rates_top[x][y][1];
+	    			bot.green = bot.green + (float) rates_bot[x][y][1];
+	    			//blue
+	    			top.blue = top.blue + (float) rates_top[x][y][2];
+	    			bot.blue = bot.blue + (float) rates_bot[x][y][2];
 	    		}
 	    	}
 	    	//increment clock
 	    	iterations++;
 	    	//re-apply dye to source
+	    	//TODO colors
 	    	if(dye_iter < max_dye) {
-	    		dye(w/2,h/2,20);
+	    		dye(w/2,h/2,20,0);
 	    		dye_iter++;
 	    	}
     	}
@@ -116,9 +127,11 @@ public class Run_Simulation extends PApplet{
     			Diffusion_Cell dc1 = cm.index(x, y, 0);
     			Diffusion_Cell dc2 = cm.index(x, y, 1);
     			//is an average for now
-    			float ratio = (dc1.diffusion_density + dc2.diffusion_density) / 2;
+    			float red_ratio = 1-(dc1.red + dc2.red) / 2;
+    			float green_ratio = 1-(dc1.green + dc2.green) / 2;
+    			float blue_ratio = 1-(dc1.blue + dc2.blue) / 2;
     			int index = w*x + y;
-    			cloth_render.pixels[index] = color(255*(1-ratio),255*(1-ratio),255);
+    			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
     		}
     	}
     	cloth_render.save(filename);
@@ -126,15 +139,33 @@ public class Run_Simulation extends PApplet{
     }
     
     //draws shape with top corner as x / y
-    public void dye(int input_x, int input_y, int size) {
+    public void dye(int input_x, int input_y, int size, int color) {
     	//Triangle
     	if(shape == "Triangle") {
     		int x = input_x - size/2;
     		int y = input_y - size/2;
 	    	for(int i=0; i < size; i++) {
 	    		for(int j=i; j < size; j++) {
-	    			cm.index(x+i, y+j, 0).diffusion_density = 1;
-	    	    	cm.index(x+i, y+j, 1).diffusion_density = 1;
+	    			Diffusion_Cell dc0 = cm.index(x+i, y+j, 0);
+	    			Diffusion_Cell dc1 = cm.index(x+i, y+j, 1);
+	    			//red
+	    			if(color == 0) {
+		    	    	dc0.red = 1;
+		    	    	dc1.red = 1;
+	    			}
+	    			//green
+	    			else if(color == 1) {
+		    	    	dc0.green = 1;
+		    	    	dc1.green = 1;
+	    			}
+	    			//blue
+	    			else if(color == 2) {
+		    	    	dc0.blue = 1;
+		    	    	dc1.blue = 1;
+	    			}
+	    			//check total saturation
+	    			normalize_colors(dc0);
+	    			normalize_colors(dc1);
 	    		}
 	    	}
     	}
@@ -144,8 +175,26 @@ public class Run_Simulation extends PApplet{
     		int y = input_y - size/2;
 	    	for(int i=0; i < size; i++) {
 	    		for(int j=0; j < size; j++) {
-	    			cm.index(x+i, y+j, 0).diffusion_density = 1;
-	    	    	cm.index(x+i, y+j, 1).diffusion_density = 1;
+	    			Diffusion_Cell dc0 = cm.index(x+i, y+j, 0);
+	    			Diffusion_Cell dc1 = cm.index(x+i, y+j, 1);
+	    			//red
+	    			if(color == 0) {
+	    				dc1.red = 1;
+	    				dc0.red = 1;
+	    			}
+	    			//green
+	    			else if(color == 1) {
+	    				dc1.green = 1;
+	    				dc0.green = 1;
+	    			}
+	    			//blue
+	    			else if(color == 2) {
+	    				dc1.blue = 1;
+	    				dc0.blue = 1;
+	    			}
+	    			//check total saturation
+	    			normalize_colors(dc0);
+	    			normalize_colors(dc1);
 	    		}
 	    	}
     	}
@@ -161,8 +210,26 @@ public class Run_Simulation extends PApplet{
 	    	    for(int j=0; j<=radius; j++) {
 		    	    x1 = j * Math.cos(angle * PI / 180);
 		    	    y1 = j * Math.sin(angle * PI / 180);
-		    	    cm.index((int)(x+x1), (int)(y+y1), 0).diffusion_density = 1;
-	    	    	cm.index((int)(x+x1), (int)(y+y1), 1).diffusion_density = 1;
+		    	    Diffusion_Cell dc0 = cm.index((int)(x+x1), (int)(y+y1), 0);
+	    			Diffusion_Cell dc1 = cm.index((int)(x+x1), (int)(y+y1), 1);
+	    			//red
+	    			if(color == 0) {
+		    	    	dc0.red = 1;
+		    	    	dc1.red = 1;
+	    			}
+	    			//green
+	    			else if(color == 1) {
+		    	    	dc0.green = 1;
+		    	    	dc1.green = 1;
+	    			}
+	    			//blue
+	    			else if(color == 2) {
+		    	    	dc0.blue = 1;
+		    	    	dc1.blue = 1;
+	    			}
+	    			//check total saturation
+	    			normalize_colors(dc0);
+	    			normalize_colors(dc1);
 	    	    }
     	    }
     	}
@@ -173,40 +240,80 @@ public class Run_Simulation extends PApplet{
     	}
     }
     
+    void normalize_colors(Diffusion_Cell dcell) {
+    	float total = dcell.red+dcell.blue+dcell.green;
+    	if(total > 1) {
+			dcell.red = dcell.red/total;
+			dcell.blue = dcell.blue/total;
+			dcell.green = dcell.green/total;
+		}
+    }
+    
     // (1) - (2)
     //calculates the rate of dye transfer for the target cell from the surrounding cells
     //positive means dye flowing in, negative means dye leaving
-    public double ficks2nd(int dx, int dy, int cell_layer) {
+    public void ficks2nd(int dx, int dy, int cell_layer) {
     	int i = dx;
     	int j = dy;
     	Diffusion_Cell current_cell = cm.index(i, j, cell_layer);
+    	
     	//terms in fick's second law
     	//NOTE: D()'s '1/2' has been changed to '1' to fit with index logic
     	double d1 = D(current_cell, (cm.index(i+1,j,cell_layer)));
-    	double m1 = (cm.index(i+1, j, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double red1 = (cm.index(i+1, j, cell_layer).red - current_cell.red)/delta_d;
+    	double green1 = (cm.index(i+1, j, cell_layer).green - current_cell.green)/delta_d;
+    	double blue1 = (cm.index(i+1, j, cell_layer).blue - current_cell.blue)/delta_d;
     	
     	double d2 = D(current_cell, (cm.index(i-1,j,cell_layer)));
-    	double m2 = (cm.index(i-1, j, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double red2 = (cm.index(i-1, j, cell_layer).red - current_cell.red)/delta_d;
+    	double green2 = (cm.index(i-1, j, cell_layer).green - current_cell.green)/delta_d;
+    	double blue2 = (cm.index(i-1, j, cell_layer).blue - current_cell.blue)/delta_d;
     	
     	double d3 = D(current_cell, (cm.index(i,j+1,cell_layer)));
-    	double m3 = (cm.index(i, j+1, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double red3 = (cm.index(i, j+1, cell_layer).red - current_cell.red)/delta_d;
+    	double green3 = (cm.index(i, j+1, cell_layer).green - current_cell.green)/delta_d;
+    	double blue3 = (cm.index(i, j+1, cell_layer).blue - current_cell.blue)/delta_d;
     	
     	double d4 = D(current_cell, (cm.index(i,j-1,cell_layer)));
-    	double m4 = (cm.index(i, j-1, cell_layer).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double red4 = (cm.index(i, j-1, cell_layer).red - current_cell.red)/delta_d;
+    	double green4 = (cm.index(i, j-1, cell_layer).green - current_cell.green)/delta_d;
+    	double blue4 = (cm.index(i, j-1, cell_layer).blue - current_cell.blue)/delta_d;
     	
     	double d5 = D(current_cell, (cm.index(i,j,(cell_layer+1)%2)));
-    	double m5 = (cm.index(i, j, (cell_layer+1)%2).diffusion_density - current_cell.diffusion_density)/delta_d;
+    	double red5 = (cm.index(i, j, (cell_layer+1)%2).red - current_cell.red)/delta_d;
+    	double green5 = (cm.index(i, j, (cell_layer+1)%2).green - current_cell.green)/delta_d;
+    	double blue5 = (cm.index(i, j, (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
     	
     	//equation
-    	double eq = (d1*m1 + d2*m2 + d3*m3 + d4*m4 + d5*m5) / delta_d;
+    	double eq_red = (d1*red1 + d2*red2 + d3*red3 + d4*red4 + d5*red5) / delta_d;
+    	double eq_green = (d1*green1 + d2*green2 + d3*green3 + d4*green4 + d5*green5) / delta_d;
+    	double eq_blue = (d1*blue1 + d2*blue2 + d3*blue3 + d4*blue4 + d5*blue5) / delta_d;
+    	
     	//bounds checking
-    	if(eq > 1) eq = 1;
-    	else if(eq < -1) eq  = -1;
-    	//if(eq != 0) System.out.println("eq: "+eq);
+    	if(eq_red > 1) eq_red = 1;
+    	else if(eq_red < -1) eq_red  = -1;
+    	if(eq_blue > 1) eq_blue = 1;
+    	else if(eq_blue < -1) eq_blue  = -1;
+    	
+    	//total density checking
+    	double total = eq_red + eq_blue + eq_green;
+		if(total > 1) {
+			eq_red = eq_red/total;
+			eq_blue = eq_blue/total;
+			eq_green = eq_green/total;
+		}
+		
     	//update corresponding rates
-    	if(cell_layer == 0) rates_top[i][j] = eq;
-    	else rates_bot[i][j] = eq;
-    	return eq;
+    	if(cell_layer == 0) {
+    		rates_top[i][j][0] = eq_red;
+    		rates_top[i][j][1] = eq_green;
+    		rates_top[i][j][2] = eq_blue;
+    	}
+    	else {
+    		rates_bot[i][j][0] = eq_red;
+    		rates_bot[i][j][1] = eq_green;
+    		rates_bot[i][j][2] = eq_blue;
+    	}
     }
     
     // (3) //TODO figure t3 out (gaps)
