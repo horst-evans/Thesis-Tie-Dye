@@ -3,7 +3,6 @@ import processing.core.PImage;
 
 public class Run_Simulation extends PApplet{
 	//NOTE: a diffusion cell ~= to one pixel
-	//TODO check lower and right bound (weird small bounce on only those sides)
 	public static float t1 = 1f;
 	public static float t2 = .47f;
 	public static float I = 1;
@@ -26,7 +25,7 @@ public class Run_Simulation extends PApplet{
 	public static int thread_warp_size = 6;
 	public static int gap_size = 1;
 
-	public static int w = 100; //weft == (x)
+	public static int w = 108; //weft == (x)
 	public static int h = 100; //warp || (y)
 	
 	//variables for main loops
@@ -57,8 +56,8 @@ public class Run_Simulation extends PApplet{
     	int oh = h;
     	w = w-(w%thread_weft_size);
     	h = h-(h%thread_warp_size);
-    	System.out.println("Width ("+ow+") Changed to "+w+", which divided by weft thread size ("+thread_weft_size+") creates "+w/thread_weft_size+" fibers.");
-    	System.out.println("Height ("+oh+") Changed to "+h+", which divided by warp thread size ("+thread_warp_size+") creates "+w/thread_warp_size+" fibers.");
+    	if(w!=ow) System.out.println("Width ("+ow+") Changed to "+w+", which divided by weft thread size ("+thread_weft_size+") creates "+w/thread_weft_size+" fibers.");
+    	if(h!=oh) System.out.println("Height ("+oh+") Changed to "+h+", which divided by warp thread size ("+thread_warp_size+") creates "+h/thread_warp_size+" fibers.");
     	//instantiation & setup
     	cm = new Cloth_Model();
     	rates_top = new double[width][height][3];
