@@ -4,7 +4,6 @@ import processing.core.PImage;
 public class Run_Simulation extends PApplet{
 	//NOTE: a diffusion cell ~= to one pixel
 	//TODO fix isWeft, vpos, and up_orientation (all closely (?) related)
-	//TODO doesn't work if w =/= h
 	//TODO check lower and right bound (weird small bounce on only those sides)
 	//TODO try something without corners
 	public static float t1 = 1f;
@@ -121,8 +120,8 @@ public class Run_Simulation extends PApplet{
     public void save_image(String filename) {
     	//transcribe colors
     	cloth_render.loadPixels();
-    	for(int x=0; x<w; x++) {
-    		for(int y=0; y<h; y++) {
+    	for(int x=0; x<h; x++) {
+    		for(int y=0; y<w; y++) {
     			//use the diffusion cell that is up between the two?
     			Diffusion_Cell dc1 = cm.index(x, y, 0);
     			Diffusion_Cell dc2 = cm.index(x, y, 1);
