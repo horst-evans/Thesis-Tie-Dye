@@ -343,7 +343,6 @@ public class Run_Simulation extends PApplet{
     // (4)
     public float D(Diffusion_Cell f1, Diffusion_Cell f2) {
     	//diffusion coefficient
-    	//TODO check for correct implementation
     	return D0() * porosity * tortuosity(f1,f2);// * (dye_concentration / diff_density);
     }
     
