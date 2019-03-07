@@ -14,23 +14,20 @@ public class Cloth_Model {
 	
 	public Diffusion_Cell index(int x, int y, int layer) {
 		//TODO need to take into account gaps!!
+		//boundary cases
+		x = x<0 ? 0 : x;
+		x = x>Run_Simulation.w - 1 ? Run_Simulation.w - 1 : x;
+
+		y = y<0 ? 0 : y;
+		y = y>Run_Simulation.h - 1 ? Run_Simulation.h - 1 : y;
+		
+		//indices into fiber for cloth cell + overflow
 		int cloth_x = x / Run_Simulation.thread_weft_size;
 		int cloth_y = y / Run_Simulation.thread_weft_size;
 		int diff_x = x % Run_Simulation.thread_warp_size;
 		int diff_y = y % Run_Simulation.thread_warp_size;
-		//boundary cases
-		cloth_x = cloth_x<0 ? 0 : cloth_x;
-		cloth_x = cloth_x>Run_Simulation.h/Run_Simulation.thread_weft_size - 1 ? Run_Simulation.h/Run_Simulation.thread_weft_size - 1 : cloth_x;
-
-		cloth_y = cloth_y<0 ? 0 : cloth_y;
-		cloth_y = cloth_y>Run_Simulation.h/Run_Simulation.thread_warp_size - 1 ? Run_Simulation.h/Run_Simulation.thread_warp_size - 1 : cloth_y;
 		
-		diff_x = diff_x<0 ? 0 : diff_x;
-		diff_x = diff_x>Run_Simulation.thread_weft_size ? Run_Simulation.thread_weft_size : diff_x;
-
-		diff_y = diff_y<0 ? 0 : diff_y;
-		diff_y = diff_y>Run_Simulation.thread_warp_size ? Run_Simulation.thread_warp_size : diff_y;
-		
+		//index into cloth_cells
 		if(layer==0) {
 			//TODO d_cells can have a gap in them, but ArrayList doesn't know this
 			Cloth_Cell cloth_cell = weft.fibers.get(cloth_x).get(cloth_y);

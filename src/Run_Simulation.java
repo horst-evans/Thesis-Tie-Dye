@@ -25,8 +25,9 @@ public class Run_Simulation extends PApplet{
 	public static int thread_weft_size = 6;
 	public static int thread_warp_size = 6;
 	public static int gap_size = 1;
-	public static int w = 100; //weft ==
-	public static int h = 100; //warp ||
+
+	public static int w = 100; //weft == (x)
+	public static int h = 100; //warp || (y)
 	
 	//variables for main loops
 	public Cloth_Model cm;
@@ -51,12 +52,21 @@ public class Run_Simulation extends PApplet{
 	}
 	
     public void setup(){
+    	//change width and height to be evenly divisible by thread size
+    	int ow = w;
+    	int oh = h;
+    	w = w-(w%thread_weft_size);
+    	h = h-(h%thread_warp_size);
+    	System.out.println("Width ("+ow+") Changed to "+w+", which divided by weft thread size ("+thread_weft_size+") creates "+w/thread_weft_size+" fibers.");
+    	System.out.println("Height ("+oh+") Changed to "+h+", which divided by warp thread size ("+thread_warp_size+") creates "+w/thread_warp_size+" fibers.");
+    	//instantiation & setup
     	cm = new Cloth_Model();
     	rates_top = new double[width][height][3];
     	rates_bot = new double[width][height][3];
     	cloth_render = createImage(w,h,RGB);
     	iterations  = 0;
     	dye_iter = 0;
+    	//WARNING: shapes can go out of bounds!!!
     	dye(3*w/8,3*h/8,30,0);
     	dye(3*w/8,3*h/8+15,30,2);
     	//dye(5*w/8,5*h/8,20,1);
