@@ -3,9 +3,7 @@ import processing.core.PImage;
 
 public class Run_Simulation extends PApplet{
 	//NOTE: a diffusion cell ~= to one pixel
-	//TODO fix isWeft, vpos, and up_orientation (all closely (?) related)
 	//TODO check lower and right bound (weird small bounce on only those sides)
-	//TODO try something without corners
 	public static float t1 = 1f;
 	public static float t2 = .47f;
 	public static float I = 1;

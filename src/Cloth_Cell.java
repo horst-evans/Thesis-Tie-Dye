@@ -2,8 +2,7 @@ import java.util.ArrayList;
 
 public class Cloth_Cell {
 	int id;
-	boolean isWeft;
-	int v_pos;
+	boolean isWeft; //used for layer
 	int x,y;
 	boolean up_orientation; // true means up, false means down
 	ArrayList<ArrayList<Diffusion_Cell>> d_cells;
@@ -11,7 +10,6 @@ public class Cloth_Cell {
 	public Cloth_Cell(int idp, boolean iswf, int vp, int xp, int yp, boolean ori) {
 		id = idp;
 		isWeft = iswf;
-		v_pos = vp;
 		x = xp;
 		y = yp;
 		up_orientation = ori;
