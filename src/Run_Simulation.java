@@ -42,7 +42,7 @@ public class Run_Simulation extends PApplet{
 	int dye_iter;
 	int max_dye = 0;
 	int iteration_mod = 10;
-	String shape = "Square";
+	String shape = "Circle";
 	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
@@ -205,31 +205,40 @@ public class Run_Simulation extends PApplet{
     		int radius = size/2;
     		final double PI = 3.1415926535;
     		double i, angle, x1, y1;
+    		boolean visited[][] = new boolean[width][height];
     		for(i = 0; i < 360; i += 0.1) {
 	    	    angle = i;
 	    	    for(int j=0; j<=radius; j++) {
 		    	    x1 = j * Math.cos(angle * PI / 180);
 		    	    y1 = j * Math.sin(angle * PI / 180);
-		    	    Diffusion_Cell dc0 = cm.index((int)(x+x1), (int)(y+y1), 0);
-	    			Diffusion_Cell dc1 = cm.index((int)(x+x1), (int)(y+y1), 1);
-	    			//red
-	    			if(color == 0) {
-		    	    	dc0.red = 1;
-		    	    	dc1.red = 1;
-	    			}
-	    			//green
-	    			else if(color == 1) {
-		    	    	dc0.green = 1;
-		    	    	dc1.green = 1;
-	    			}
-	    			//blue
-	    			else if(color == 2) {
-		    	    	dc0.blue = 1;
-		    	    	dc1.blue = 1;
-	    			}
-	    			//check total saturation
-	    			normalize_colors(dc0);
-	    			normalize_colors(dc1);
+		    	    int nx = (int)(x+x1);
+		    	    int ny = (int)(y+y1);
+		    	    //the loops will hit interior cells multiple times
+		    	    //only add dye to cell if that cell has not yet been visited
+		    	    if(!visited[nx][ny]) {
+			    	    Diffusion_Cell dc0 = cm.index(nx, ny, 0);
+		    			Diffusion_Cell dc1 = cm.index(nx, ny, 1);
+		    			//red
+		    			if(color == 0) {
+			    	    	dc0.red = 1;
+			    	    	dc1.red = 1;
+		    			}
+		    			//green
+		    			else if(color == 1) {
+			    	    	dc0.green = 1;
+			    	    	dc1.green = 1;
+		    			}
+		    			//blue
+		    			else if(color == 2) {
+			    	    	dc0.blue = 1;
+			    	    	dc1.blue = 1;
+		    			}
+		    			//check total saturation
+		    			normalize_colors(dc0);
+		    			normalize_colors(dc1);
+		    			//set visited to true
+		    			visited[nx][ny] = true;
+		    	    }
 	    	    }
     	    }
     	}
