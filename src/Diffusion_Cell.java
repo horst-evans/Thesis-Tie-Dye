@@ -4,9 +4,7 @@ public class Diffusion_Cell {
 	int cloth_ref;
 	int x,y,z;				// position
 	boolean orientation;	// true: x-parallel (weft), false: y-parallel (warp) 
-	//concentration of dye within cell [0-1]
-	//TODO r+g+b cannot be greater than 1
-	//float diffusion_density = 0;
+	//maximum concentration of dye within cell [0-1] (total)
 	float red = 0;
 	float green = 0;
 	float blue = 0;

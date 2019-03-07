@@ -66,7 +66,7 @@ public class Run_Simulation extends PApplet{
     	//print to screen every modulo
     	if (iterations % iteration_mod == 0){
     		System.out.println(iterations);
-	    	//TODO save in 0000X format for GIF
+	    	//0000X format for GIF creation (so you can sort by number)
 	    	String number = String.format("%05d", iterations);
 	    	save_image(shape+"_Gif/cloth_render_"+number+".jpg");
 	    	//put on console
@@ -101,7 +101,6 @@ public class Run_Simulation extends PApplet{
 	    	//increment clock
 	    	iterations++;
 	    	//re-apply dye to source
-	    	//TODO colors
 	    	if(dye_iter < max_dye) {
 	    		dye(w/2,h/2,20,0);
 	    		dye_iter++;
