@@ -9,7 +9,6 @@ public class Cloth_Model {
 	}
 	
 	public Diffusion_Cell index(int x, int y, int layer) {
-		//TODO gaps (cloth_model):	index()
 		//boundary cases
 		x = x<0 ? 0 : x;
 		x = x>Run_Simulation.w - 1 ? Run_Simulation.w - 1 : x;

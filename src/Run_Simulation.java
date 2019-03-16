@@ -12,15 +12,15 @@ public class Run_Simulation extends PApplet{
 	public static float V = 1;
 	
 	public static float porosity = 0.5f;
-	public static float vmax = 1;				// total volume of a diffusion cell
-	public static float diff_density = 1;		// phi (φ)
-	public static float delta_t = 0.0005f;		// hours
-	public static float delta_d = 1.335f;//1.35f;//1.75f;//0.05f;		// mm
-	public static float dye_concentration = 1f; // "defined arbitrarily"
+	public static float vmax = 1;				//total volume of a diffusion cell
+	public static float diff_density = 1;		//phi (φ)
+	public static float delta_t = 0.0005f;		//hours
+	public static float delta_d = 1.335f;		//1.35f;//1.75f;//0.05f;//(mm)
+	public static float dye_concentration = 1f; //"defined arbitrarily"
 	
-	//public static String pattern = "plain";	// crisscross
+	//public static String pattern = "plain";	// criss-cross
 	//plain is currently the default, will add more later
-	// thread sizes = total size of thread(including gaps)
+	//thread sizes = total size of thread(including gaps)
 	public static int thread_weft_size = 6;
 	public static int thread_warp_size = 6;
 	public static int gap_size = 1;
@@ -86,7 +86,7 @@ public class Run_Simulation extends PApplet{
 	    	//run fick's
     		for(int x=0; x<w; x++) {
 	    		for(int y=0; y<h; y++) {
-	    			//use the diffusion cell that is up between the two?
+	    			//TODO use the diffusion cell that is up between the two (see paper)
 	    			ficks2nd(x,y,0);
 	    			ficks2nd(x,y,1);
 	    		}
@@ -133,7 +133,7 @@ public class Run_Simulation extends PApplet{
     			Diffusion_Cell dc1 = cm.index(x, y, 0);
     			Diffusion_Cell dc2 = cm.index(x, y, 1);
     			//is an average for now\
-    			//TODO gaps (run_sim):	save_image()
+    			//TODO gaps (run_sim): save_image()
     			
     			Diffusion_Cell dc3 = dc1;
     			Diffusion_Cell dc4 = dc2;
@@ -368,19 +368,19 @@ public class Run_Simulation extends PApplet{
     	}
     }
     
-    // (3) //TODO gaps (run_sim):	t3()
+    // (3)
     public float t3(Diffusion_Cell f1, Diffusion_Cell f2) {
+    	//different layers
+    	if(f1.z != f2.z) return I;
     	//gap and gap
-    	if(f1.isGap && f2.isGap) return II;
+    	else if(f1.isGap && f2.isGap) return IV;
     	//fiber and gap
     	else if(f1.isGap || f2.isGap) return III;
-    	//different layers
-    	else if(cm.weft.hasFiber(f1) == cm.warp.hasFiber(f2)) return I;
     	//same layer and parallel (weft layer and warp layer)
-    	else if(cm.weft.hasFiber(f1) == cm.weft.hasFiber(f2) && cm.weft.hasFiber(f1) > 0) return V;
-    	else if(cm.warp.hasFiber(f1) == cm.warp.hasFiber(f2) && cm.warp.hasFiber(f1) > 0) return V;
+    	else if(f1.cloth_ref / cm.weft.fibers.size() == f2.cloth_ref / cm.weft.fibers.size()) return V;
+    	else if(f1.cloth_ref / cm.warp.fibers.size() == f2.cloth_ref / cm.warp.fibers.size()) return V;
     	//same layer and perpendicular
-    	else return IV;
+    	else return II;
     }
     
     public float tortuosity(Diffusion_Cell f1, Diffusion_Cell f2) {	//calculate all 

@@ -42,17 +42,5 @@ public class Layer {
 			fibers.add(fiber);
 		}
 	}
-
-	public int hasFiber(Diffusion_Cell d) {
-		for(int i=0; i<fibers.size(); i++) {
-			for(int j=0; j<fibers.get(0).size(); j++) {
-				if(fibers.get(i).get(j).id == d.cloth_ref) {
-					if(fibers.get(i).get(j).up_orientation) return	2;
-					else return 1;
-				}
-			}
-		}
-		return -1;
-	}
 	
 }

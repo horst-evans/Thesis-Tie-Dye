@@ -18,7 +18,6 @@ public class Cloth_Cell {
 	}
 	
 	public void Create_Diffusions() {
-		//TODO gaps (cloth_cell):	create_diffusions()
 		int layer = isWeft ? 0 : 1;
 		//start at the gap _|||_, continue until the max - the gap
 		if(isWeft) {

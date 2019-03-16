@@ -2,7 +2,7 @@
 public class Diffusion_Cell {
 	//NOTE: a diffusion cell ~= to one pixel
 	int cloth_ref;
-	int x,y,z;				// position
+	int x,y,z;				// position (z is layer)
 	boolean orientation;	// true: x-parallel (weft), false: y-parallel (warp) 
 	boolean isGap;
 	//maximum concentration of dye within cell [0-1] (total)
