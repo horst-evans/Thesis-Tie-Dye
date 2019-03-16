@@ -18,18 +18,45 @@ public class Cloth_Cell {
 	}
 	
 	public void Create_Diffusions() {
-		//TODO make gaps real
+		//TODO gaps (cloth_cell):	create_diffusions()
 		int layer = isWeft ? 0 : 1;
-		int x_gap = 0;//!isWeft ? Run_Simulation.gap_size : 0;
-		int y_gap = 0;//isWeft ? Run_Simulation.gap_size : 0;
 		//start at the gap _|||_, continue until the max - the gap
-		for(int i = x_gap; i < Run_Simulation.thread_weft_size-x_gap; i++) {
-			ArrayList<Diffusion_Cell> row = new ArrayList<Diffusion_Cell> ();
-			for(int j = y_gap; j < Run_Simulation.thread_warp_size-y_gap; j++) {
-				Diffusion_Cell nd = new Diffusion_Cell(id, x+i, y+j, layer, isWeft);
-				row.add(nd);
+		if(isWeft) {
+			for(int i = 0; i < Run_Simulation.thread_weft_size; i++) {
+				ArrayList<Diffusion_Cell> row = new ArrayList<Diffusion_Cell> ();
+				for(int j = 0; j < Run_Simulation.thread_warp_size; j++) {
+					Diffusion_Cell new_d_cell;
+					int lower_b = Run_Simulation.gap_size;
+					int upper_b = Run_Simulation.thread_warp_size - 1 - Run_Simulation.gap_size;
+					if(j >= lower_b && j <= upper_b){
+						new_d_cell = new Diffusion_Cell(id, x+i, y+j, layer, isWeft, false);
+					}
+					else {
+						new_d_cell = new Diffusion_Cell(id, x+i, y+j, layer, isWeft, true);
+					}
+					row.add(new_d_cell);
+				}
+				d_cells.add(row);
 			}
-			d_cells.add(row);
+		}
+		//TODO different thread sizes (check logic)
+		else {
+			for(int i = 0; i < Run_Simulation.thread_warp_size; i++) {
+				ArrayList<Diffusion_Cell> row = new ArrayList<Diffusion_Cell> ();
+				for(int j = 0; j < Run_Simulation.thread_weft_size; j++) {
+					Diffusion_Cell new_d_cell;
+					int lower_b = Run_Simulation.gap_size;
+					int upper_b = Run_Simulation.thread_weft_size - 1 - Run_Simulation.gap_size;
+					if(i >= lower_b && i <= upper_b){
+						new_d_cell = new Diffusion_Cell(id, x+i, y+j, layer, isWeft, false);
+					}
+					else {
+						new_d_cell = new Diffusion_Cell(id, x+i, y+j, layer, isWeft, true);
+					}
+					row.add(new_d_cell);
+				}
+				d_cells.add(row);
+			}
 		}
 	}
 	

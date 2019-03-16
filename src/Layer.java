@@ -5,7 +5,6 @@ public class Layer {
 	
 	public Layer(boolean first_down, boolean isweft) {
 		fibers = new ArrayList<ArrayList<Cloth_Cell>>();
-		//TODO fix for weft =/= warp
 		//number of threads than can fit in the weft size (x)
 		int weftnum = Run_Simulation.w/Run_Simulation.thread_weft_size;
 		if(Run_Simulation.w%Run_Simulation.thread_weft_size>0) weftnum++;
@@ -56,8 +55,4 @@ public class Layer {
 		return -1;
 	}
 	
-	//TODO have gaps exist
-	public boolean isGap(Diffusion_Cell d) {
-		return false;
-	}
 }

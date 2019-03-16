@@ -15,7 +15,7 @@ public class Run_Simulation extends PApplet{
 	public static float vmax = 1;				// total volume of a diffusion cell
 	public static float diff_density = 1;		// phi (φ)
 	public static float delta_t = 0.0005f;		// hours
-	public static float delta_d = 1.35f;//1.75f;//0.05f;		// mm
+	public static float delta_d = 1.335f;//1.35f;//1.75f;//0.05f;		// mm
 	public static float dye_concentration = 1f; // "defined arbitrarily"
 	
 	//public static String pattern = "plain";	// crisscross
@@ -65,10 +65,9 @@ public class Run_Simulation extends PApplet{
     	cloth_render = createImage(w,h,RGB);
     	iterations  = 0;
     	dye_iter = 0;
-    	//WARNING: shapes can go out of bounds!!!
     	dye(3*w/8,3*h/8,30,0);
-    	dye(3*w/8,3*h/8+15,30,2);
-    	//dye(5*w/8,5*h/8,20,1);
+    	dye(3*w/8+15,3*h/8,30,2);
+    	//dye(4*w/8,4*h/8,30,1);
     }
 
     public void draw(){
@@ -77,6 +76,7 @@ public class Run_Simulation extends PApplet{
     		System.out.println(iterations);
 	    	//0000X format for GIF creation (so you can sort by number)
 	    	String number = String.format("%05d", iterations);
+	    	//gaps_visualize(shape+"_Gif/cloth_render_"+number+".jpg");
 	    	save_image(shape+"_Gif/cloth_render_"+number+".jpg");
 	    	//put on console
     		image(cloth_render,0,0);
@@ -117,6 +117,7 @@ public class Run_Simulation extends PApplet{
     	}
     	//finished looping, so save file and end draw() loop
     	else {
+    		//gaps_visualize("cloth_render.jpg");
     		save_image("cloth_render.jpg");
 	    	//exit draw() loop
     		exit();
@@ -126,25 +127,62 @@ public class Run_Simulation extends PApplet{
     public void save_image(String filename) {
     	//transcribe colors
     	cloth_render.loadPixels();
-    	for(int x=0; x<h; x++) {
-    		for(int y=0; y<w; y++) {
+    	for(int y=0; y<h; y++) {
+    		for(int x=0; x<w; x++) {
     			//use the diffusion cell that is up between the two?
     			Diffusion_Cell dc1 = cm.index(x, y, 0);
     			Diffusion_Cell dc2 = cm.index(x, y, 1);
-    			//is an average for now
+    			//is an average for now\
+    			//TODO gaps (run_sim):	save_image()
+    			
+    			Diffusion_Cell dc3 = dc1;
+    			Diffusion_Cell dc4 = dc2;
+    			/*
+    			if(dc1.isGap) {
+    				dc1.red = 1;
+    				dc1.blue = 1;
+    				dc1.green = 1;
+    			}
+    			if(dc2.isGap) {
+    				dc2.red = 1;
+    				dc2.blue = 1;
+    				dc2.green = 1;
+    			}
+    			*/
     			float red_ratio = 1-(dc1.red + dc2.red) / 2;
     			float green_ratio = 1-(dc1.green + dc2.green) / 2;
     			float blue_ratio = 1-(dc1.blue + dc2.blue) / 2;
-    			int index = w*x + y;
+    			int index = w*y + x;
     			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
+    			dc1 = dc3;
+    			dc2 = dc4;
     		}
     	}
     	cloth_render.save(filename);
     	cloth_render.updatePixels();
     }
     
+    public void gaps_visualize(String filename) {
+    	//transcribe colors
+    	cloth_render.loadPixels();
+    	for(int y=0; y<h; y++) {
+    		for(int x=0; x<w; x++) {
+    			//use the diffusion cell that is up between the two?
+    			Diffusion_Cell dc1 = cm.index(x, y, 0);
+    			Diffusion_Cell dc2 = cm.index(x, y, 1);
+    			int index = w*y + x;
+    			if(dc1.isGap && dc2.isGap) cloth_render.pixels[index] = color(0);
+    			else if (dc1.isGap || dc2.isGap) cloth_render.pixels[index] = color(255/2);
+    			else cloth_render.pixels[index] = color(255);
+    		}
+    	}
+    	cloth_render.updatePixels();
+    	cloth_render.save(filename);
+    }
+    
     //draws shape with top corner as x / y
     public void dye(int input_x, int input_y, int size, int color) {
+    	//TODO don't let dye go out of bounds
     	//Triangle
     	if(shape == "Triangle") {
     		int x = input_x - size/2;
@@ -330,12 +368,12 @@ public class Run_Simulation extends PApplet{
     	}
     }
     
-    // (3) //TODO figure t3 out (gaps)
+    // (3) //TODO gaps (run_sim):	t3()
     public float t3(Diffusion_Cell f1, Diffusion_Cell f2) {
     	//gap and gap
-    	if(cm.isGap(f1) && cm.isGap(f2)) return II;
+    	if(f1.isGap && f2.isGap) return II;
     	//fiber and gap
-    	else if(cm.isGap(f1) || cm.isGap(f2)) return III;
+    	else if(f1.isGap || f2.isGap) return III;
     	//different layers
     	else if(cm.weft.hasFiber(f1) == cm.warp.hasFiber(f2)) return I;
     	//same layer and parallel (weft layer and warp layer)

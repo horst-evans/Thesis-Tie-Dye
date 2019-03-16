@@ -8,12 +8,8 @@ public class Cloth_Model {
 		warp = new Layer(true, false);
 	}
 	
-	public boolean isGap(Diffusion_Cell d) {
-		return (weft.isGap(d) || warp.isGap(d));
-	}
-	
 	public Diffusion_Cell index(int x, int y, int layer) {
-		//TODO need to take into account gaps!!
+		//TODO gaps (cloth_model):	index()
 		//boundary cases
 		x = x<0 ? 0 : x;
 		x = x>Run_Simulation.w - 1 ? Run_Simulation.w - 1 : x;
@@ -29,7 +25,6 @@ public class Cloth_Model {
 		
 		//index into cloth_cells
 		if(layer==0) {
-			//TODO d_cells can have a gap in them, but ArrayList doesn't know this
 			if(cloth_x > Run_Simulation.w/Run_Simulation.thread_weft_size)System.out.println(cloth_x+", "+cloth_y);
 			Cloth_Cell cloth_cell = weft.fibers.get(cloth_x).get(cloth_y);
 			return cloth_cell.d_cells.get(diff_x).get(diff_y);
