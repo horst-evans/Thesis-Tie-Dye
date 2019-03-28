@@ -18,6 +18,8 @@ public class Run_Simulation extends PApplet{
 	public static float delta_t = 0.0005f;		//hours
 	public static float delta_d = 1.75f;		//1.35f;//1.75f;//0.05f;//(mm)
 	public static float dye_concentration = 1f; //"defined arbitrarily"
+	public static float fold_multiplier = .2f;	//arbitrary limiter on 
+												//diffusion rate between folds
 	
 	//public static String pattern = "plain";	// criss-cross
 	//plain is currently the default, will add more later
@@ -144,28 +146,11 @@ public class Run_Simulation extends PApplet{
     			Diffusion_Cell dc2 = cm.index(x, y, 1);
     			//is an average for now\
     			//TODO gaps (run_sim): save_image()
-    			
-    			Diffusion_Cell dc3 = dc1;
-    			Diffusion_Cell dc4 = dc2;
-    			/*
-    			if(dc1.isGap) {
-    				dc1.red = 1;
-    				dc1.blue = 1;
-    				dc1.green = 1;
-    			}
-    			if(dc2.isGap) {
-    				dc2.red = 1;
-    				dc2.blue = 1;
-    				dc2.green = 1;
-    			}
-    			*/
     			float red_ratio = 1-(dc1.red + dc2.red) / 2;
     			float green_ratio = 1-(dc1.green + dc2.green) / 2;
     			float blue_ratio = 1-(dc1.blue + dc2.blue) / 2;
     			int index = w*y + x;
     			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
-    			dc1 = dc3;
-    			dc2 = dc4;
     		}
     	}
     	cloth_render.save(filename);
@@ -312,6 +297,7 @@ public class Run_Simulation extends PApplet{
     }
     
     //TODO Folds of different slope (defaults to vertical fold in the middle [w/2])
+    //TODO have empty space point back to original point
     void fold_init(int x1, int y1, int x2, int y2) {
     	for(int i=0; i<w; i++) {
     		for(int j=0; j<h; j++){
@@ -357,10 +343,10 @@ public class Run_Simulation extends PApplet{
     	double blue5 = (cm.index(i, j, (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
     	
     	Point2D fold_point = fold[i][j];
-    	double d6 = D(current_cell, (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2)));
-    	double red6 = (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).red - current_cell.red)/delta_d;
-    	double green6 = (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).green - current_cell.green)/delta_d;
-    	double blue6 = (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
+    	double d6 = fold_multiplier * D(current_cell, (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2)));
+    	double red6 = fold_multiplier * (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).red - current_cell.red)/delta_d;
+    	double green6 = fold_multiplier * (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).green - current_cell.green)/delta_d;
+    	double blue6 = fold_multiplier * (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
     	
     	//equation
     	double eq_red = (d1*red1 + d2*red2 + d3*red3 + d4*red4 + d5*red5 + d6*red6) / delta_d;
