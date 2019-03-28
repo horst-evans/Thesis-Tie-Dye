@@ -1,5 +1,6 @@
 import processing.core.PApplet;
 import processing.core.PImage;
+import java.awt.geom.Point2D;
 
 public class Run_Simulation extends PApplet{
 	//NOTE: a diffusion cell ~= to one pixel
@@ -15,7 +16,7 @@ public class Run_Simulation extends PApplet{
 	public static float vmax = 1;				//total volume of a diffusion cell
 	public static float diff_density = 1;		//phi (φ)
 	public static float delta_t = 0.0005f;		//hours
-	public static float delta_d = 1.335f;		//1.35f;//1.75f;//0.05f;//(mm)
+	public static float delta_d = 1.75f;		//1.35f;//1.75f;//0.05f;//(mm)
 	public static float dye_concentration = 1f; //"defined arbitrarily"
 	
 	//public static String pattern = "plain";	// criss-cross
@@ -24,14 +25,21 @@ public class Run_Simulation extends PApplet{
 	public static int thread_weft_size = 6;
 	public static int thread_warp_size = 6;
 	public static int gap_size = 1;
-
-	public static int w = 108; //weft == (x)
+	
+	public static int w = 200; //weft == (x)
 	public static int h = 100; //warp || (y)
 	
 	//variables for main loops
 	public Cloth_Model cm;
 	double[][][] rates_top;
 	double[][][] rates_bot;
+	
+	//fold relationship
+	// "\" => invert indices
+	// "/" => invert indices, then max - index
+	// "|" => x = max - x
+	// "-" => y = max - y
+	Point2D[][] fold;
 	
 	PImage cloth_render;
 	int iterations;
@@ -62,11 +70,13 @@ public class Run_Simulation extends PApplet{
     	cm = new Cloth_Model();
     	rates_top = new double[width][height][3];
     	rates_bot = new double[width][height][3];
+    	fold = new Point2D[width][height];
+    	fold_init(w/2, 0, w/2, h);
     	cloth_render = createImage(w,h,RGB);
     	iterations  = 0;
     	dye_iter = 0;
-    	dye(3*w/8,3*h/8,30,0);
-    	dye(3*w/8+15,3*h/8,30,2);
+    	dye(50,50,30,0);
+    	dye(65,50,30,2);
     	//dye(4*w/8,4*h/8,30,1);
     }
 
@@ -301,6 +311,16 @@ public class Run_Simulation extends PApplet{
 		}
     }
     
+    //TODO Folds of different slope (defaults to vertical fold in the middle [w/2])
+    void fold_init(int x1, int y1, int x2, int y2) {
+    	for(int i=0; i<w; i++) {
+    		for(int j=0; j<h; j++){
+    			Point2D p = new Point2D.Double((w-1)-i, j);
+    			fold[i][j] = p;
+    		}
+    	}
+    }
+    
     // (1) - (2)
     //calculates the rate of dye transfer for the target cell from the surrounding cells
     //positive means dye flowing in, negative means dye leaving
@@ -308,7 +328,7 @@ public class Run_Simulation extends PApplet{
     	int i = dx;
     	int j = dy;
     	Diffusion_Cell current_cell = cm.index(i, j, cell_layer);
-    	
+    	//TODO utilize fold
     	//terms in fick's second law
     	//NOTE: D()'s '1/2' has been changed to '1' to fit with index logic
     	double d1 = D(current_cell, (cm.index(i+1,j,cell_layer)));
@@ -336,10 +356,16 @@ public class Run_Simulation extends PApplet{
     	double green5 = (cm.index(i, j, (cell_layer+1)%2).green - current_cell.green)/delta_d;
     	double blue5 = (cm.index(i, j, (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
     	
+    	Point2D fold_point = fold[i][j];
+    	double d6 = D(current_cell, (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2)));
+    	double red6 = (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).red - current_cell.red)/delta_d;
+    	double green6 = (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).green - current_cell.green)/delta_d;
+    	double blue6 = (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
+    	
     	//equation
-    	double eq_red = (d1*red1 + d2*red2 + d3*red3 + d4*red4 + d5*red5) / delta_d;
-    	double eq_green = (d1*green1 + d2*green2 + d3*green3 + d4*green4 + d5*green5) / delta_d;
-    	double eq_blue = (d1*blue1 + d2*blue2 + d3*blue3 + d4*blue4 + d5*blue5) / delta_d;
+    	double eq_red = (d1*red1 + d2*red2 + d3*red3 + d4*red4 + d5*red5 + d6*red6) / delta_d;
+    	double eq_green = (d1*green1 + d2*green2 + d3*green3 + d4*green4 + d5*green5 + d6*green6) / delta_d;
+    	double eq_blue = (d1*blue1 + d2*blue2 + d3*blue3 + d4*blue4 + d5*blue5 + d6*blue6) / delta_d;
     	
     	//bounds checking
     	if(eq_red > 1) eq_red = 1;
