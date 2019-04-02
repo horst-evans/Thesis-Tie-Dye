@@ -141,9 +141,25 @@ public class Run_Simulation extends PApplet{
     	cloth_render.loadPixels();
     	for(int y=0; y<h; y++) {
     		for(int x=0; x<w; x++) {
-    			//use the diffusion cell that is up between the two?
+    			//TODO use the diffusion cell that is up between the two?
     			Diffusion_Cell dc1 = cm.index(x, y, 0);
     			Diffusion_Cell dc2 = cm.index(x, y, 1);
+    			/* TODO examine thread diffusion
+    			if(dc1.isUp) {
+    				float red_ratio = 1-dc1.red / 2;
+        			float green_ratio = 1-dc1.green / 2;
+        			float blue_ratio = 1-dc1.blue / 2;
+        			int index = w*y + x;
+        			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
+    			}
+    			else {
+    				float red_ratio = 1-dc2.red / 2;
+        			float green_ratio = 1-dc2.green / 2;
+        			float blue_ratio = 1-dc2.blue / 2;
+        			int index = w*y + x;
+        			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
+    			}
+    			*/
     			//is an average for now\
     			//TODO gaps (run_sim): save_image()
     			float red_ratio = 1-(dc1.red + dc2.red) / 2;
@@ -151,6 +167,7 @@ public class Run_Simulation extends PApplet{
     			float blue_ratio = 1-(dc1.blue + dc2.blue) / 2;
     			int index = w*y + x;
     			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
+    			
     		}
     	}
     	cloth_render.save(filename);
