@@ -49,7 +49,7 @@ public class Run_Simulation extends PApplet{
 	int dye_iter;
 	int max_dye = 0;
 	int iteration_mod = 10;
-	String shape = "Circle";
+	String shape = "Triangle";
 	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
@@ -77,8 +77,7 @@ public class Run_Simulation extends PApplet{
     	cloth_render = createImage(w,h,RGB);
     	iterations  = 0;
     	dye_iter = 0;
-    	dye(50,50,30,0);
-    	dye(65,50,30,2);
+    	setup_dye();
     	//dye(4*w/8,4*h/8,30,1);
     }
 
@@ -123,7 +122,7 @@ public class Run_Simulation extends PApplet{
 	    	iterations++;
 	    	//re-apply dye to source
 	    	if(dye_iter < max_dye) {
-	    		dye(w/2,h/2,20,0);
+	    		setup_dye();
 	    		dye_iter++;
 	    	}
     	}
@@ -166,6 +165,11 @@ public class Run_Simulation extends PApplet{
     			float green_ratio = 1-(dc1.green + dc2.green) / 2;
     			float blue_ratio = 1-(dc1.blue + dc2.blue) / 2;
     			int index = w*y + x;
+    			/*
+    			if(dc1.isGap && dc2.isGap) cloth_render.pixels[index] = color(0);
+    			else if (dc1.isGap || dc2.isGap) cloth_render.pixels[index] = color(255/2);
+    			else
+    			*/ 
     			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
     			
     		}
@@ -302,6 +306,12 @@ public class Run_Simulation extends PApplet{
     		System.out.println("Specified Shape is not Implemented");
     		exit();
     	}
+    }
+    
+    //dyes fabric, calls dye() function, used in setup() and draw() re-dye
+    public void setup_dye() {
+    	dye(50,50,30,0);
+    	dye(65,50,30,2);
     }
     
     void normalize_colors(Diffusion_Cell dcell) {
