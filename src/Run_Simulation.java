@@ -66,8 +66,8 @@ public class Run_Simulation extends PApplet{
     	int oh = h;
     	w = w-(w%thread_weft_size);
     	h = h-(h%thread_warp_size);
-    	if(w!=ow) System.out.println("Width ("+ow+") Changed to "+w+", which divided by weft thread size ("+thread_weft_size+") creates "+w/thread_weft_size+" fibers.");
-    	if(h!=oh) System.out.println("Height ("+oh+") Changed to "+h+", which divided by warp thread size ("+thread_warp_size+") creates "+h/thread_warp_size+" fibers.");
+    	if(w!=ow) System.out.println("Width ("+ow+") Changed to "+w+", which divided by weft thread size ("+thread_weft_size+") creates "+w/thread_weft_size+" threads.");
+    	if(h!=oh) System.out.println("Height ("+oh+") Changed to "+h+", which divided by warp thread size ("+thread_warp_size+") creates "+h/thread_warp_size+" threads.");
     	//instantiation & setup
     	cm = new Cloth_Model();
     	rates_top = new double[width][height][3];
@@ -105,8 +105,8 @@ public class Run_Simulation extends PApplet{
     		for(int x=0; x<w; x++) {
 	    		for(int y=0; y<h; y++) {
 	    			//use the diffusion cell that is up between the two?
-	    			Diffusion_Cell top = cm.index(x, y, 0);
-	    			Diffusion_Cell bot = cm.index(x, y, 1);
+	    			Diffusion_Cell top = index(x, y, 0);
+	    			Diffusion_Cell bot = index(x, y, 1);
 	    			//red
 	    			top.red = top.red + (float) rates_top[x][y][0];
 	    			bot.red = bot.red + (float) rates_bot[x][y][0];
@@ -141,8 +141,8 @@ public class Run_Simulation extends PApplet{
     	for(int y=0; y<h; y++) {
     		for(int x=0; x<w; x++) {
     			//TODO use the diffusion cell that is up between the two?
-    			Diffusion_Cell dc1 = cm.index(x, y, 0);
-    			Diffusion_Cell dc2 = cm.index(x, y, 1);
+    			Diffusion_Cell dc1 = index(x, y, 0);
+    			Diffusion_Cell dc2 = index(x, y, 1);
     			/* TODO examine thread diffusion
     			if(dc1.isUp) {
     				float red_ratio = 1-dc1.red / 2;
@@ -184,8 +184,8 @@ public class Run_Simulation extends PApplet{
     	for(int y=0; y<h; y++) {
     		for(int x=0; x<w; x++) {
     			//use the diffusion cell that is up between the two?
-    			Diffusion_Cell dc1 = cm.index(x, y, 0);
-    			Diffusion_Cell dc2 = cm.index(x, y, 1);
+    			Diffusion_Cell dc1 = index(x, y, 0);
+    			Diffusion_Cell dc2 = index(x, y, 1);
     			int index = w*y + x;
     			if(dc1.isGap && dc2.isGap) cloth_render.pixels[index] = color(0);
     			else if (dc1.isGap || dc2.isGap) cloth_render.pixels[index] = color(255/2);
@@ -205,8 +205,8 @@ public class Run_Simulation extends PApplet{
     		int y = input_y - size/2;
 	    	for(int i=0; i < size; i++) {
 	    		for(int j=i; j < size; j++) {
-	    			Diffusion_Cell dc0 = cm.index(x+i, y+j, 0);
-	    			Diffusion_Cell dc1 = cm.index(x+i, y+j, 1);
+	    			Diffusion_Cell dc0 = index(x+i, y+j, 0);
+	    			Diffusion_Cell dc1 = index(x+i, y+j, 1);
 	    			//red
 	    			if(color == 0) {
 		    	    	dc0.red = 1;
@@ -234,8 +234,8 @@ public class Run_Simulation extends PApplet{
     		int y = input_y - size/2;
 	    	for(int i=0; i < size; i++) {
 	    		for(int j=0; j < size; j++) {
-	    			Diffusion_Cell dc0 = cm.index(x+i, y+j, 0);
-	    			Diffusion_Cell dc1 = cm.index(x+i, y+j, 1);
+	    			Diffusion_Cell dc0 = index(x+i, y+j, 0);
+	    			Diffusion_Cell dc1 = index(x+i, y+j, 1);
 	    			//red
 	    			if(color == 0) {
 	    				dc1.red = 1;
@@ -275,8 +275,8 @@ public class Run_Simulation extends PApplet{
 		    	    //the loops will hit interior cells multiple times
 		    	    //only add dye to cell if that cell has not yet been visited
 		    	    if(!visited[nx][ny]) {
-			    	    Diffusion_Cell dc0 = cm.index(nx, ny, 0);
-		    			Diffusion_Cell dc1 = cm.index(nx, ny, 1);
+			    	    Diffusion_Cell dc0 = index(nx, ny, 0);
+		    			Diffusion_Cell dc1 = index(nx, ny, 1);
 		    			//red
 		    			if(color == 0) {
 			    	    	dc0.red = 1;
@@ -314,6 +314,33 @@ public class Run_Simulation extends PApplet{
     	dye(65,50,30,2);
     }
     
+    //index function
+	public Diffusion_Cell index(int x, int y, int layer) {
+		//boundary cases
+		x = x<0 ? 0 : x;
+		x = x>Run_Simulation.w - 1 ? Run_Simulation.w - 1 : x;
+
+		y = y<0 ? 0 : y;
+		y = y>Run_Simulation.h - 1 ? Run_Simulation.h - 1 : y;
+		
+		//indices into fiber for cloth cell + overflow
+		int cloth_x = x / Run_Simulation.thread_weft_size;
+		int cloth_y = y / Run_Simulation.thread_warp_size;
+		int diff_x = x % Run_Simulation.thread_weft_size;
+		int diff_y = y % Run_Simulation.thread_warp_size;
+		
+		//index into cloth_cells
+		if(layer==0) {
+			Cloth_Cell cloth_cell = cm.weft.threads.get(cloth_x).get(cloth_y);
+			return cloth_cell.d_cells.get(diff_x).get(diff_y);
+		}
+		else {
+			//switch x and y if w =/= h
+			Cloth_Cell cloth_cell = cm.warp.threads.get(cloth_y).get(cloth_x);
+			return cloth_cell.d_cells.get(diff_x).get(diff_y);
+		}
+	}
+    
     void normalize_colors(Diffusion_Cell dcell) {
     	float total = dcell.red+dcell.blue+dcell.green;
     	if(total > 1) {
@@ -340,40 +367,40 @@ public class Run_Simulation extends PApplet{
     public void ficks2nd(int dx, int dy, int cell_layer) {
     	int i = dx;
     	int j = dy;
-    	Diffusion_Cell current_cell = cm.index(i, j, cell_layer);
+    	Diffusion_Cell current_cell = index(i, j, cell_layer);
     	//TODO utilize fold
     	//terms in fick's second law
     	//NOTE: D()'s '1/2' has been changed to '1' to fit with index logic
-    	double d1 = D(current_cell, (cm.index(i+1,j,cell_layer)));
-    	double red1 = (cm.index(i+1, j, cell_layer).red - current_cell.red)/delta_d;
-    	double green1 = (cm.index(i+1, j, cell_layer).green - current_cell.green)/delta_d;
-    	double blue1 = (cm.index(i+1, j, cell_layer).blue - current_cell.blue)/delta_d;
+    	double d1 = D(current_cell, (index(i+1,j,cell_layer)));
+    	double red1 = (index(i+1, j, cell_layer).red - current_cell.red)/delta_d;
+    	double green1 = (index(i+1, j, cell_layer).green - current_cell.green)/delta_d;
+    	double blue1 = (index(i+1, j, cell_layer).blue - current_cell.blue)/delta_d;
     	
-    	double d2 = D(current_cell, (cm.index(i-1,j,cell_layer)));
-    	double red2 = (cm.index(i-1, j, cell_layer).red - current_cell.red)/delta_d;
-    	double green2 = (cm.index(i-1, j, cell_layer).green - current_cell.green)/delta_d;
-    	double blue2 = (cm.index(i-1, j, cell_layer).blue - current_cell.blue)/delta_d;
+    	double d2 = D(current_cell, (index(i-1,j,cell_layer)));
+    	double red2 = (index(i-1, j, cell_layer).red - current_cell.red)/delta_d;
+    	double green2 = (index(i-1, j, cell_layer).green - current_cell.green)/delta_d;
+    	double blue2 = (index(i-1, j, cell_layer).blue - current_cell.blue)/delta_d;
     	
-    	double d3 = D(current_cell, (cm.index(i,j+1,cell_layer)));
-    	double red3 = (cm.index(i, j+1, cell_layer).red - current_cell.red)/delta_d;
-    	double green3 = (cm.index(i, j+1, cell_layer).green - current_cell.green)/delta_d;
-    	double blue3 = (cm.index(i, j+1, cell_layer).blue - current_cell.blue)/delta_d;
+    	double d3 = D(current_cell, (index(i,j+1,cell_layer)));
+    	double red3 = (index(i, j+1, cell_layer).red - current_cell.red)/delta_d;
+    	double green3 = (index(i, j+1, cell_layer).green - current_cell.green)/delta_d;
+    	double blue3 = (index(i, j+1, cell_layer).blue - current_cell.blue)/delta_d;
     	
-    	double d4 = D(current_cell, (cm.index(i,j-1,cell_layer)));
-    	double red4 = (cm.index(i, j-1, cell_layer).red - current_cell.red)/delta_d;
-    	double green4 = (cm.index(i, j-1, cell_layer).green - current_cell.green)/delta_d;
-    	double blue4 = (cm.index(i, j-1, cell_layer).blue - current_cell.blue)/delta_d;
+    	double d4 = D(current_cell, (index(i,j-1,cell_layer)));
+    	double red4 = (index(i, j-1, cell_layer).red - current_cell.red)/delta_d;
+    	double green4 = (index(i, j-1, cell_layer).green - current_cell.green)/delta_d;
+    	double blue4 = (index(i, j-1, cell_layer).blue - current_cell.blue)/delta_d;
     	
-    	double d5 = D(current_cell, (cm.index(i,j,(cell_layer+1)%2)));
-    	double red5 = (cm.index(i, j, (cell_layer+1)%2).red - current_cell.red)/delta_d;
-    	double green5 = (cm.index(i, j, (cell_layer+1)%2).green - current_cell.green)/delta_d;
-    	double blue5 = (cm.index(i, j, (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
+    	double d5 = D(current_cell, (index(i,j,(cell_layer+1)%2)));
+    	double red5 = (index(i, j, (cell_layer+1)%2).red - current_cell.red)/delta_d;
+    	double green5 = (index(i, j, (cell_layer+1)%2).green - current_cell.green)/delta_d;
+    	double blue5 = (index(i, j, (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
     	
     	Point2D fold_point = fold[i][j];
-    	double d6 = fold_multiplier * D(current_cell, (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2)));
-    	double red6 = fold_multiplier * (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).red - current_cell.red)/delta_d;
-    	double green6 = fold_multiplier * (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).green - current_cell.green)/delta_d;
-    	double blue6 = fold_multiplier * (cm.index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
+    	double d6 = fold_multiplier * D(current_cell, (index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2)));
+    	double red6 = fold_multiplier * (index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).red - current_cell.red)/delta_d;
+    	double green6 = fold_multiplier * (index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).green - current_cell.green)/delta_d;
+    	double blue6 = fold_multiplier * (index((int)fold_point.getX(), (int)fold_point.getY(), (cell_layer+1)%2).blue - current_cell.blue)/delta_d;
     	
     	//equation
     	double eq_red = (d1*red1 + d2*red2 + d3*red3 + d4*red4 + d5*red5 + d6*red6) / delta_d;
@@ -416,8 +443,8 @@ public class Run_Simulation extends PApplet{
     	//fiber and gap
     	else if(f1.isGap || f2.isGap) return III;
     	//same layer and parallel (weft layer and warp layer)
-    	else if(f1.cloth_ref / cm.weft.fibers.size() == f2.cloth_ref / cm.weft.fibers.size()) return V;
-    	else if(f1.cloth_ref / cm.warp.fibers.size() == f2.cloth_ref / cm.warp.fibers.size()) return V;
+    	else if(f1.cloth_ref / cm.weft.threads.size() == f2.cloth_ref / cm.weft.threads.size()) return V;
+    	else if(f1.cloth_ref / cm.warp.threads.size() == f2.cloth_ref / cm.warp.threads.size()) return V;
     	//same layer and perpendicular
     	else return II;
     }

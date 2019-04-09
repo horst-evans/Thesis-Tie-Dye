@@ -38,7 +38,6 @@ public class Cloth_Cell {
 				d_cells.add(row);
 			}
 		}
-		//TODO different thread sizes (check logic)
 		else {
 			for(int i = 0; i < Run_Simulation.thread_warp_size; i++) {
 				ArrayList<Diffusion_Cell> row = new ArrayList<Diffusion_Cell> ();
@@ -47,10 +46,10 @@ public class Cloth_Cell {
 					int lower_b = Run_Simulation.gap_size;
 					int upper_b = Run_Simulation.thread_weft_size - 1 - Run_Simulation.gap_size;
 					if(i >= lower_b && i <= upper_b){
-						new_d_cell = new Diffusion_Cell(id, x+i, y+j, layer, isWeft, false);
+						new_d_cell = new Diffusion_Cell(id, x+i, y+j, layer, up_orientation, false);
 					}
 					else {
-						new_d_cell = new Diffusion_Cell(id, x+i, y+j, layer, isWeft, true);
+						new_d_cell = new Diffusion_Cell(id, x+i, y+j, layer, up_orientation, true);
 					}
 					row.add(new_d_cell);
 				}
