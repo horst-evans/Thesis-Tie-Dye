@@ -7,10 +7,8 @@ public class Layer {
 		fibers = new ArrayList<ArrayList<Cloth_Cell>>();
 		//number of threads than can fit in the weft size (x)
 		int weftnum = Run_Simulation.w/Run_Simulation.thread_weft_size;
-		if(Run_Simulation.w%Run_Simulation.thread_weft_size>0) weftnum++;
 		//number of threads than can fit in the weft size (x)
 		int warpnum = Run_Simulation.h/Run_Simulation.thread_weft_size;
-		if(Run_Simulation.h%Run_Simulation.thread_weft_size>0) warpnum++;
 		//change inputs based on which layer (weft vs warp)
 		int num1, num2;
 		if(isweft) {
