@@ -16,7 +16,7 @@ public class Run_Simulation extends PApplet{
 	public static float vmax = 1;				//total volume of a diffusion cell
 	public static float diff_density = 1;		//phi (φ)
 	public static float delta_t = 0.0005f;		//hours
-	public static float delta_d = 1.75f;		//1.35f;//1.75f;//0.05f;//(mm)
+	public static float delta_d = 1.75f;		//(mm)
 	public static float dye_concentration = 1f; //"defined arbitrarily"
 	public static float fold_multiplier = .2f;	//arbitrary limiter on 
 												//diffusion rate between folds
