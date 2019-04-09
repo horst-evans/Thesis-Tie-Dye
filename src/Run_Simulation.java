@@ -143,7 +143,7 @@ public class Run_Simulation extends PApplet{
     			//TODO use the diffusion cell that is up between the two?
     			Diffusion_Cell dc1 = index(x, y, 0);
     			Diffusion_Cell dc2 = index(x, y, 1);
-    			/* TODO examine thread diffusion
+    			/* 
     			if(dc1.isUp) {
     				float red_ratio = 1-dc1.red / 2;
         			float green_ratio = 1-dc1.green / 2;
@@ -353,6 +353,7 @@ public class Run_Simulation extends PApplet{
     //TODO Folds of different slope (defaults to vertical fold in the middle [w/2])
     //TODO have empty space point back to original point
     void fold_init(int x1, int y1, int x2, int y2) {
+    	line(x1, y1, x2, y2);
     	for(int i=0; i<w; i++) {
     		for(int j=0; j<h; j++){
     			Point2D p = new Point2D.Double((w-1)-i, j);
@@ -368,7 +369,6 @@ public class Run_Simulation extends PApplet{
     	int i = dx;
     	int j = dy;
     	Diffusion_Cell current_cell = index(i, j, cell_layer);
-    	//TODO utilize fold
     	//terms in fick's second law
     	//NOTE: D()'s '1/2' has been changed to '1' to fit with index logic
     	double d1 = D(current_cell, (index(i+1,j,cell_layer)));
