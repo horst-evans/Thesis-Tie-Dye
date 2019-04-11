@@ -17,7 +17,7 @@ public class Run_Simulation extends PApplet{
 	public static float diff_density = 1;		//phi (φ)
 	public static float delta_t = 0.0005f;		//hours
 	public static float delta_d = 1.75f;		//(mm)
-	public static float dye_concentration = 1f; //"defined arbitrarily"
+	//public static float dye_concentration = 1f; //"defined arbitrarily"
 	public static float fold_multiplier = .2f;	//arbitrary limiter on 
 												//diffusion rate between folds
 	
@@ -32,21 +32,20 @@ public class Run_Simulation extends PApplet{
 	public static int h = 100; //warp || (y)
 	
 	//variables for main loops
-	public Cloth_Model cm;
-	double[][][] rates_top;
-	double[][][] rates_bot;
-	
 	//fold relationship
 	// "\" => invert indices
 	// "/" => invert indices, then max - index
 	// "|" => x = max - x
 	// "-" => y = max - y
 	Point2D[][] fold;
-	
 	PImage cloth_render;
-	int iterations;
+	public Cloth_Model cm;
+	double[][][] rates_top;
+	double[][][] rates_bot;
+	
+	int iterations = 0;
 	int max_iter = 100;
-	int dye_iter;
+	int dye_iter = 0;
 	int max_dye = 0;
 	int iteration_mod = 10;
 	String shape = "Triangle";
@@ -73,10 +72,9 @@ public class Run_Simulation extends PApplet{
     	rates_top = new double[width][height][3];
     	rates_bot = new double[width][height][3];
     	fold = new Point2D[width][height];
+    	//TODO change to ax+b format
     	fold_init(w/2, 0, w/2, h);
     	cloth_render = createImage(w,h,RGB);
-    	iterations  = 0;
-    	dye_iter = 0;
     	setup_dye();
     	//dye(4*w/8,4*h/8,30,1);
     }
@@ -143,33 +141,10 @@ public class Run_Simulation extends PApplet{
     			//TODO use the diffusion cell that is up between the two?
     			Diffusion_Cell dc1 = index(x, y, 0);
     			Diffusion_Cell dc2 = index(x, y, 1);
-    			/* 
-    			if(dc1.isUp) {
-    				float red_ratio = 1-dc1.red / 2;
-        			float green_ratio = 1-dc1.green / 2;
-        			float blue_ratio = 1-dc1.blue / 2;
-        			int index = w*y + x;
-        			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
-    			}
-    			else {
-    				float red_ratio = 1-dc2.red / 2;
-        			float green_ratio = 1-dc2.green / 2;
-        			float blue_ratio = 1-dc2.blue / 2;
-        			int index = w*y + x;
-        			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
-    			}
-    			*/
-    			//is an average for now\
-    			//TODO gaps (run_sim): save_image()
     			float red_ratio = 1-(dc1.red + dc2.red) / 2;
     			float green_ratio = 1-(dc1.green + dc2.green) / 2;
     			float blue_ratio = 1-(dc1.blue + dc2.blue) / 2;
     			int index = w*y + x;
-    			/*
-    			if(dc1.isGap && dc2.isGap) cloth_render.pixels[index] = color(0);
-    			else if (dc1.isGap || dc2.isGap) cloth_render.pixels[index] = color(255/2);
-    			else
-    			*/ 
     			cloth_render.pixels[index] = color(255*green_ratio*blue_ratio, 255*red_ratio*blue_ratio, 255*red_ratio*green_ratio);
     			
     		}
@@ -433,7 +408,7 @@ public class Run_Simulation extends PApplet{
     		rates_bot[i][j][2] = eq_blue;
     	}
     }
-    
+     	
     // (3)
     public float t3(Diffusion_Cell f1, Diffusion_Cell f2) {
     	//different layers
@@ -468,6 +443,7 @@ public class Run_Simulation extends PApplet{
     	return 3.6f * root;
     }
     
+    //FUNCTIONS BELOW NOT CURRENTLY USED
     // (6)
     public float Vd() {
     	//returns value [0,1)
