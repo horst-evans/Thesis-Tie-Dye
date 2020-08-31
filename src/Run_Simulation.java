@@ -6,19 +6,19 @@ public class Run_Simulation extends PApplet{
 	//NOTE: a diffusion cell ~= to one pixel
 	public static float t1 = 1f;
 	public static float t2 = .47f;
-	public static float I = 1;
-	public static float II = 1;
-	public static float III = 1;
+	public static float I = .005f;
+	public static float II = .005f;
+	public static float III = .005f;
 	public static float IV = 1;
 	public static float V = 1;
 	
 	public static float porosity = 0.5f;
 	public static float vmax = 1;				//total volume of a diffusion cell
-	public static float diff_density = 1;		//phi (φ)
+	//public static float diff_density = 1;		//phi (φ)
 	public static float delta_t = 0.0005f;		//hours
 	public static float delta_d = 1.75f;		//(mm)
 	//public static float dye_concentration = 1f; //"defined arbitrarily"
-	public static float fold_multiplier = .2f;	//arbitrary limiter on 
+	public static float fold_multiplier = 20f;	//arbitrary limiter on 
 												//diffusion rate between folds
 	
 	//public static String pattern = "plain";	// criss-cross
@@ -48,7 +48,7 @@ public class Run_Simulation extends PApplet{
 	int dye_iter = 0;
 	int max_dye = 0;
 	int iteration_mod = 10;
-	String shape = "Triangle";
+	String shape = "Circle";
 	
 	public static void main(String[] args) {
 		PApplet.main("Run_Simulation");
@@ -453,7 +453,7 @@ public class Run_Simulation extends PApplet{
     }
     
     // (7) - (8)
-    public float Ad(float k, float b) {
+    /*public float Ad(float k, float b) {
     	// k = "k is a constant" :/
     	float power = pow(diff_density, b);
     	return k * power;
@@ -465,7 +465,7 @@ public class Run_Simulation extends PApplet{
     	float numerator = Vd() * Kl * diff_density;
     	float denominator = 1 + (Kl * diff_density);
     	return numerator / denominator;
-    }
+    }*/
     
     // (9)
     public float Vu(float B) {
